@@ -40,7 +40,7 @@ def get_twit():
                 access_token = '100506002-67IOcA0mZehNVmJlqmkOIB4QsJfjlXKK1OX0ylqO',
                 access_token_secret = 'j72a7volEPzuwRAmu44j467IyxdZHpgIA1fPxU6AgWDy1')
         for tweet in ts.search_tweets_iterable(tso):
-            print ('%s @%s tweeted: %s' % (tweet['created_at'], tweet['user']['screen_name'], tweet['text']))
+            tweet_text = ('%s @%s tweeted: %s' % (tweet['created_at'], tweet['user']['screen_name'], tweet['text']))
         return api_bp.make_response(status=API_STATUS_OK, result=dict())
     except TwitterSearchException as e:
         print e
