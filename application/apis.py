@@ -27,7 +27,7 @@ def get_twit():
     try:
         tso = MyTwitterSearchOrder()
         #tso = TwitterUserOrder('lys2419') # create a TwitterUserOrder to access specific user timeline
-        tso.set_keywords(['미오'])
+        tso.set_keywords(['시부야 린'])
         tso.set_language('ko')
         tso.set_include_entities(False)
         today = datetime.datetime.utcnow().date()
@@ -39,9 +39,13 @@ def get_twit():
                 consumer_secret = 'VnFh6AvyiojNKVFUryQXWaKKzHsvBsVnebjQWDcOCfftsjgO9J',
                 access_token = '100506002-67IOcA0mZehNVmJlqmkOIB4QsJfjlXKK1OX0ylqO',
                 access_token_secret = 'j72a7volEPzuwRAmu44j467IyxdZHpgIA1fPxU6AgWDy1')
+
+        #ts.search_tweets(tso)
         for tweet in ts.search_tweets_iterable(tso):
             tweet_text = ('%s @%s tweeted: %s' % (tweet['created_at'], tweet['user']['screen_name'], tweet['text']))
-        return api_bp.make_response(status=API_STATUS_OK, result=dict())
+            print tweet_text
+        return api_bp.make_response(status=API_STATUS_OK, result=dict(
+            amount=ts.get_amount_of_tweets()))
     except TwitterSearchException as e:
         print e
         return api_bp.make_response(status=API_STATUS_UNKNOWN, result=dict())
