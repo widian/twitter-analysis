@@ -2,8 +2,8 @@
 <html>
 <head>
   <title>Layouts &raquo; Hero-Thirds</title>
-  <link rel="stylesheet" type="text/css" href="../static/lib/bootstrap/dist/css/bootstrap.min.css" />
-  <link rel="stylesheet" type="text/css" href="../static/css/keen-dashboards.css" />
+  <link rel="stylesheet" type="text/css" href="{{ url_for('page.static', filename='lib/bootstrap/dist/css/bootstrap.min.css') }}" />
+  <link rel="stylesheet" type="text/css" href="{{ url_for('page.static', filename='css/keen-dashboards.css') }}" />
 </head>
 <body class="application">
 
@@ -41,9 +41,7 @@
             Cell Title
           </div>
           <div class="chart-stage">
-            <div id="grid-1-1">
-              <img data-src="holder.js/100%x240/white/text:#grid-1-1">
-            </div>
+              <div id="main-chart">  </div>
           </div>
           <div class="chart-notes">
             Notes about this chart
@@ -155,16 +153,18 @@
 
   </div>
 
-  <script type="text/javascript" src="../static/lib/jquery/dist/jquery.min.js"></script>
-  <script type="text/javascript" src="../static/lib/bootstrap/dist/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="{{ url_for('page.static', filename='lib/jquery/dist/jquery.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('page.static', filename='lib/bootstrap/dist/js/bootstrap.min.js') }}"></script>
 
-  <script type="text/javascript" src="../static/lib/holderjs/holder.js"></script>
+  <script type="text/javascript" src="{{ url_for('page.static', filename='lib/holderjs/holder.js') }}"></script>
   <script>
     Holder.add_theme("white", { background:"#fff", foreground:"#a7a7a7", size:10 });
   </script>
 
-  <script type="text/javascript" src="../static/lib/keen-js/dist/keen.min.js"></script>
-  <script type="text/javascript" src="../static/js/meta.js"></script>
+  <script type="text/javascript" src="{{ url_for('page.static', filename='lib/keen-js/dist/keen.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('page.static', filename='js/meta.js') }}"></script>
+
+  <script type="text/javascript" src="{{ url_for('page.static', filename='js/main.js') }}"></script>
 
 </body>
 </html>

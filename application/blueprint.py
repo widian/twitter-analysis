@@ -2,7 +2,7 @@
 # -*- coding:utf8 -*-
 import json
 import flask
-from flask import Blueprint
+from flask import Blueprint, render_template
 
 class APIResponseMaker(object):
     def make_response(self, **kwargs):
@@ -53,4 +53,17 @@ class APIBlueprint(Blueprint):
     def make_response(self, **kwargs):
         api_response_maker = self.API_RESPONSE_MAKER_DICT['json']
         return api_response_maker.make_response(**kwargs)
+
+class PageResponseMaker(object):
+    def make_response(self, **kwargs):
+        if 'page' in kwargs:
+            return render_template(kwargs['page'])
+        else:
+            return render_template('index.html')
+
+class PageBlueprint(Blueprint):
+    def make_response(self, **kwargs):
+        response_maker = PageResponseMaker()
+        return response_maker.make_response(**kwargs)
+
 
