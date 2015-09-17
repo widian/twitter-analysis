@@ -7,10 +7,12 @@ Keen.ready(function(){
   // ----------------------------------------
   // Pageviews Area Chart
   // ----------------------------------------
-  var pageviews_timeline = new Keen.Query("count", {
+  var pageviews_timeline = new Keen.Query("maximum", {
     eventCollection: "test_cases",
-    interval: "hourly",
-    timeframe: "this_14_days"
+    target_property: "count",
+    groupBy: "user_name",
+    interval: "daily",
+    timeframe: "this_7_days"
   });
   client.draw(pageviews_timeline, document.getElementById("main-chart"), {
     chartType: "areachart",
@@ -24,7 +26,7 @@ Keen.ready(function(){
         top: "5%",
         width: "80%"
       },
-      isStacked: true
+      isStacked: false 
     }
   });
 });
