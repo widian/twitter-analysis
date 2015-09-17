@@ -31,14 +31,20 @@ class TweetSearchSupport(object):
 
     def generate_tso(self, girl_name, start_date):
         tso = MyTwitterSearchOrder()
-        #tso = TwitterUserOrder('lys2419') # create a TwitterUserOrder to access specific user timeline
+#        tso = TwitterUserOrder('lys2419') # create a TwitterUserOrder to access specific user timeline
+#        for tweet in ts.search_tweets_iterable(tso):
+#            tweet_text = ('%s @%s tweeted: %s' % (tweet['created_at'], tweet['user']['screen_name'], tweet['text']))
+#            print tweet_text
         tso.set_keywords([girl_name])
         tso.set_language('ko')
         tso.set_include_entities(False)
-        tso.set_since(start_date - datetime.timedelta(days=7))
+        tso.set_since(start_date - datetime.timedelta(days=8))
         tso.set_until(start_date - datetime.timedelta(days=1))
         return tso
     def to_datetime(self, datestring):
+        """ referenced
+        http://stackoverflow.com/questions/7703865/going-from-twitter-date-to-python-datetime-date
+        """
         time_tuple = parsedate_tz(datestring.strip())
         dt = datetime.datetime(*time_tuple[:6])
         return dt - datetime.timedelta(seconds=time_tuple[-1])

@@ -8,16 +8,16 @@ Keen.ready(function(){
   // Pageviews Area Chart
   // ----------------------------------------
   var pageviews_timeline = new Keen.Query("maximum", {
-    eventCollection: "test_cases",
+    eventCollection: "cindemas",
     target_property: "count",
-    groupBy: "user_name",
+    groupBy: "캐릭터",
     interval: "daily",
-    timeframe: "this_7_days"
+    timeframe: "this_14_days"
   });
   client.draw(pageviews_timeline, document.getElementById("main-chart"), {
-    chartType: "areachart",
+    chartType: "linechart",
     title: false,
-    height: 250,
+    height: 240,
     width: "auto",
     chartOptions: {
       chartArea: {

@@ -12,20 +12,17 @@ class Keen(object):
     def __init__(self):
         self.keen = keen_client
 
-    def add_girl(self, date, name, count, **kwargs):
-        timestamp = date.strftime("%Y-%m-%dT03:00:00.000Z")
+    def add_girl(self, collection, name, count_dict, **kwargs):
+        data_array = list()
+        for i in count_dict.keys():
+            data_dict = dict()
+            data_dict["캐릭터"] = name
+            data_dict["keen"] = dict()
+            data_dict["count"] = count_dict[i]
+            data_dict["keen"]["timestamp"] = i
+            data_array.append(data_dict)
         self.keen.add_events({
-            "cindemas" : [
-                {
-                    u"캐릭터" : name,
-                    "count" : count,
-                    "keen" : {
-                        "timestamp" : timestamp
-                    },
-
-                }
-            ]
-        })
+            collection : data_array})
         return True
 
     def test_function(self, **kwargs):
