@@ -20,7 +20,6 @@ class APIStatus(object):
             'memo': self.memo,
         }
 
-
 API_STATUS_OK = APIStatus(code=APIStatusCode.OK , memo=_('API_STATUS_OK'))
 API_STATUS_UNKNOWN = APIStatus(code=APIStatusCode.unknown, memo=_('API_STATUS_UNKNOWN'))
 API_STATUS_RATE_LIMIT = APIStatus(code=APIStatusCode.rate_limit, memo=_('API_STATUS_RATE_LIMIT'))

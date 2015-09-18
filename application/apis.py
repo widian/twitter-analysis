@@ -23,7 +23,7 @@ def get_twit():
         return api_bp.make_response(status=API_STATUS_UNKNOWN, result = {"result" : False})
     if redis_support.exist_lock_twitter_search():
         # On Twitter search caused rate limit
-        return api_bp.make_response(status=API_STATUS_RATE_LIMIT, result = {"result" : False})
+        return api_bp.make_response(status=API_STATUS_RATE_LIMIT, result = {"result" : False, "ttl" : redis_support.ttl_exist_lock_twitter_search()})
     try:
         today = datetime.datetime.now().date()
         tss = TweetSearchSupport()
@@ -61,7 +61,7 @@ def get_twit():
         if e.code == 429:
             # On Twitter search caused rate limit
             redis_support.expire_lock_twitter_search()
-            return api_bp.make_response(status=API_STATUS_RATE_LIMIT, result={"result" : False})
+            return api_bp.make_response(status=API_STATUS_RATE_LIMIT, result={"result" : False, "ttl" : redis_support.ttl_exist_lock_twitter_search()})
         else:
             print e
             return api_bp.make_response(status=API_STATUS_UNKNOWN, result=dict())

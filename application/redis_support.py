@@ -42,3 +42,13 @@ def exist_lock_twitter_search():
         return True
     else:
         return False
+
+def ttl_exist_lock_twitter_search():
+    key = "rate-limit-search"
+    if redis_get(key):
+        return r.ttl(key)
+    else:
+        return 0
+
+if __name__ == '__main__':
+    pass
