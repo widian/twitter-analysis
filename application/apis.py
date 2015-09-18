@@ -5,7 +5,7 @@ import datetime
 
 from flask import Flask, request
 from blueprint import APIBlueprint
-from constants import API_STATUS_OK, API_STATUS_UNKNOWN, API_STATUS_RATE_LIMIT, API_STATUS_ON_TWITTER_SEARCH
+from constants import API_STATUS_OK, API_STATUS_UNKNOWN, API_STATUS_RATE_LIMIT, API_STATUS_ON_TWITTER_SEARCH, API_STATUS_ALREADY_REFRESHED, API_STATUS_UNCAUGHT_REQUIRED
 
 from TwitterSearch import TwitterSearchException
 
@@ -17,10 +17,11 @@ import charcollection
 api_bp = APIBlueprint('api', __name__, url_prefix='/api')
 @api_bp.route('/get_twit', methods=['GET'])
 def get_twit():
-    target_character_number = request.args.get("character")
-    target_collection_number = request.args.get("collection")
+    target_character_number = int(request.args.get("character"))
+    target_collection_number = int(request.args.get("collection"))
     if target_collection_number is None or target_character_number is None:
-        return api_bp.make_response(status=API_STATUS_UNKNOWN, result = {"result" : False})
+        return api_bp.make_response(status=API_STATUS_UNCAUGHT_REQUIRED, result={"result" : False})
+
     if redis_support.exist_lock_twitter_search():
         # On Twitter search caused rate limit
         return api_bp.make_response(status=API_STATUS_RATE_LIMIT, result = {"result" : False, "ttl" : redis_support.ttl_exist_lock_twitter_search()})
@@ -30,19 +31,13 @@ def get_twit():
         ts = tss.get_ts()
         keen = Keen()
 
-        # LOCK twitter search using redis
-        if redis_support.lock_twitter_search():
-            # On Twitter search error
-            return api_bp.make_response(status=API_STATUS_ON_TWITTER_SEARCH, result = {"result" : False})
-
         character = charcollection.get_character(target_collection_number, target_character_number)
         if character == False:
-            return api_bp.make_response(status=API_STATUS_UNKNOWN, result = {"result" : False})
+            return api_bp.make_response(status=API_STATUS_UNCAUGHT_REQUIRED, result = {"result" : False})
         collection = charcollection.get_collection(target_collection_number)
         if collection == False:
-            return api_bp.make_response(status=API_STATUS_UNKNOWN, result = {"result" : False})
-
-        tso = tss.generate_tso(character, today)
+            return api_bp.make_response(status=API_STATUS_UNCAUGHT_REQUIRED, result = {"result" : False})
+        tso = tss.generate_tso(character.encode('UTF-8'), today)
         count_dict = dict()
         amount = 0
         for tweet in ts.search_tweets_iterable(tso):
@@ -52,10 +47,12 @@ def get_twit():
                 count_dict[timestamp] = 1
             else:
                 count_dict[timestamp] += 1
-        redis_support.unlock_twitter_search()
-        # UNLOCK twitter search
 
+        seconds = (datetime.datetime.combine( datetime.datetime.now().date() 
+                                            + datetime.timedelta(days=1), datetime.datetime.min.time()) - datetime.datetime.now()).seconds
+        redis_support.refresh_expire_set(collection, target_character_number, seconds)
         keen.add_girl(collection, character, count_dict)
+
         return api_bp.make_response(status=API_STATUS_OK, result={ "result" : True })
     except TwitterSearchException as e:
         if e.code == 429:

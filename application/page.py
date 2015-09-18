@@ -10,6 +10,6 @@ page_bp = PageBlueprint('page', __name__, static_folder='../view/static', templa
 
 @page_bp.route('/')
 def main():
-    return page_bp.make_response()
+    return page_bp.make_response(collections = charcollection.collections, storage = charcollection.storage)
 
 

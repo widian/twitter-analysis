@@ -29,7 +29,7 @@ class Keen(object):
         return True
 
     def is_exist_girl(self, collection, name, timestamp, **kwargs):
-        return self.keen.count(collection, filters=[{"property_name" : "keen.timestamp", "operator" : 'eq', "property_value" : timestamp}]) != 0
+        return self.keen.count(collection, filters=[{"property_name" : "keen.timestamp", "operator" : 'eq', "property_value" : timestamp}, {"property_name" : "캐릭터", "operator" : 'eq', "property_value" : name}]) != 0
 
     def test_function(self, **kwargs):
         self.keen.add_events({
@@ -48,3 +48,9 @@ class Keen(object):
                     "count" : 4}]
                 })
         return self.keen.count("test_cases", timeframe="this_14_days")
+
+if __name__ == '__main__':
+    keen_client.add_events({
+        'test_cases' : [
+            {"user_name" : u"시부야 린",
+                "count" : 4}]})

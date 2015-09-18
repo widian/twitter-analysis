@@ -57,9 +57,9 @@ class APIBlueprint(Blueprint):
 class PageResponseMaker(object):
     def make_response(self, **kwargs):
         if 'page' in kwargs:
-            return render_template(kwargs['page'])
+            return render_template(kwargs['page'], **kwargs)
         else:
-            return render_template('index.html')
+            return render_template('index.html', **kwargs)
 
 class PageBlueprint(Blueprint):
     def make_response(self, **kwargs):

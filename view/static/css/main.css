@@ -1,0 +1,19 @@
+div.chart-stage button.btn-character {
+    margin : 2px;
+}
+div.chart-stage button.btn-character:nth-child(odd) {
+    background-color : #feee88;
+}
+div.chart-stage button.btn-character:nth-child(even) {
+    background-color : #feeecc;
+}
+
+div.loading {
+    display : none;
+    width: 100%;
+    background-color: #bbb;
+    position : absolute;
+    opacity : 0.5;
+    height: 100%;
+    z-index: 1;
+}

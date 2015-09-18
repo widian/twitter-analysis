@@ -41,6 +41,7 @@ class TweetSearchSupport(object):
         tso.set_since(start_date - datetime.timedelta(days=8))
         tso.set_until(start_date - datetime.timedelta(days=1))
         return tso
+
     def to_datetime(self, datestring):
         """ referenced
         http://stackoverflow.com/questions/7703865/going-from-twitter-date-to-python-datetime-date
@@ -48,3 +49,15 @@ class TweetSearchSupport(object):
         time_tuple = parsedate_tz(datestring.strip())
         dt = datetime.datetime(*time_tuple[:6])
         return dt - datetime.timedelta(seconds=time_tuple[-1])
+
+if __name__ == '__main__':
+    import charcollection
+    character = charcollection.cinde_characters[0]
+    tss = TweetSearchSupport()
+    today = datetime.datetime.now().date()
+    tso = tss.generate_tso(character.encode('UTF-8'), today)
+    ts = tss.get_ts()
+    for tweet in ts.search_tweets_iterable(tso):
+        tweet_text = ('%s @%s tweeted: %s' % (tweet['created_at'], tweet['user']['screen_name'], tweet['text']))
+        print tweet_text
+
