@@ -29,13 +29,16 @@ class TweetSearchSupport(object):
     def get_ts(self):
         return self.ts
 
-    def generate_tso(self, girl_name, start_date):
+    def generate_tso(self, name_list, start_date, or_operator=False):
+        """ name_list : 트위터 검색에 사용할 검색어들의 리스트
+            start_date : 트위터 검색이 시작되는 날짜 (GMT 0000 기준)
+        """
         tso = MyTwitterSearchOrder()
 #        tso = TwitterUserOrder('lys2419') # create a TwitterUserOrder to access specific user timeline
 #        for tweet in ts.search_tweets_iterable(tso):
 #            tweet_text = ('%s @%s tweeted: %s' % (tweet['created_at'], tweet['user']['screen_name'], tweet['text']))
 #            print tweet_text
-        tso.set_keywords([girl_name])
+        tso.set_keywords(name_list, or_operator=or_operator)
         tso.set_language('ko')
         tso.set_include_entities(False)
         tso.set_since(start_date - datetime.timedelta(days=8))

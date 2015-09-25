@@ -37,7 +37,7 @@ def get_twit():
         collection = charcollection.get_collection(target_collection_number)
         if collection == False:
             return api_bp.make_response(status=API_STATUS_UNCAUGHT_REQUIRED, result = {"result" : False})
-        tso = tss.generate_tso(character.encode('UTF-8'), today)
+        tso = tss.generate_tso([character.encode('UTF-8')], today)
         count_dict = dict()
         amount = 0
         for tweet in ts.search_tweets_iterable(tso):
@@ -69,3 +69,20 @@ def add_event():
     print redis_support.redis_get("test")
     return api_bp.make_response(status=API_STATUS_OK, result={"result" : redis_support.redis_get("test")})
 
+
+@api_bp.route('/test_twitter', methods=['GET'])
+def test_event():
+    try:
+        tss = TweetSearchSupport()
+        ts = tss.get_ts()
+        today = datetime.datetime.now().date()
+        tso = tss.generate_tso(["혼다 미오", "짱미오", "캡미오"], today, True)
+        count = 0
+        for tweet in ts.search_tweets_iterable(tso):
+            tweet_text = ('%s @%s tweeted: %s' % (tweet['created_at'], tweet['user']['screen_name'], tweet['text']))
+            print tweet_text
+            count += 1
+        return api_bp.make_response(status=API_STATUS_OK, result = {"result" : True , "count" : count})
+    except TwitterSearchException as e:
+        print e
+        return api_bp.make_response(status=API_STATUS_UNKNOWN, result=dict())
