@@ -86,3 +86,20 @@ def test_event():
     except TwitterSearchException as e:
         print e
         return api_bp.make_response(status=API_STATUS_UNKNOWN, result=dict())
+
+@api_bp.route('/test_user_tweet', methods=['GET'])
+def test_user_tweet():
+    try:
+        tss = TweetSearchSupport()
+        ts = tss.get_ts()
+        today = datetime.datetime.now().date()
+        tso = tss.generate_user_order("NoxHiems", today)
+        count = 0
+        for tweet in ts.search_tweets_iterable(tso):
+            tweet_text = ('%s @%s tweeted: %s' % (tweet['created_at'], tweet['user']['screen_name'], tweet['text']))
+            print tweet_text
+            count += 1
+        return api_bp.make_response(status=API_STATUS_OK, result = {"result" : True , "count" : count})
+    except TwitterSearchException as e:
+        print e
+        return api_bp.make_response(status=API_STATUS_UNKNOWN, result=dict())

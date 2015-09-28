@@ -31,7 +31,8 @@ class TweetSearchSupport(object):
 
     def generate_tso(self, name_list, start_date, or_operator=False):
         """ name_list : 트위터 검색에 사용할 검색어들의 리스트
-            start_date : 트위터 검색이 시작되는 날짜 (GMT 0000 기준)
+            start_date : 트위터 검색이 끝나는 날짜 (GMT 0000 기준)
+            or_operator : 검색어 리스트를 or로 엮을건지 유무
         """
         tso = MyTwitterSearchOrder()
 #        tso = TwitterUserOrder('lys2419') # create a TwitterUserOrder to access specific user timeline
@@ -43,6 +44,15 @@ class TweetSearchSupport(object):
         tso.set_include_entities(False)
         tso.set_since(start_date - datetime.timedelta(days=8))
         tso.set_until(start_date - datetime.timedelta(days=1))
+        return tso
+
+    def generate_user_order(self, user_id, start_date, or_operator=False):
+        """ user_id : 트위터 검색의 타겟 ID
+            start_date : 트위터 검색이 끝나는 날짜 (GMT 0000 기준)
+            or_operator : 검색어 리스트를 or로 엮을건지 유무
+        """
+        tso = TwitterUserOrder(user_id)
+        tso.set_include_entities(False)
         return tso
 
     def to_datetime(self, datestring):
