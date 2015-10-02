@@ -76,7 +76,7 @@ def test_event():
         tss = TweetSearchSupport()
         ts = tss.get_ts()
         today = datetime.datetime.now().date()
-        tso = tss.generate_tso(["혼다 미오", "짱미오", "캡미오"], today, True)
+        tso = tss.generate_tso([u"アニメ".encode("UTF-8")],today, True)
         count = 0
         for tweet in ts.search_tweets_iterable(tso):
             tweet_text = ('%s @%s tweeted: %s' % (tweet['created_at'], tweet['user']['screen_name'], tweet['text']))
@@ -89,17 +89,32 @@ def test_event():
 
 @api_bp.route('/test_user_tweet', methods=['GET'])
 def test_user_tweet():
+    from twkorean import TwitterKoreanProcessor
+    from util import PrintString
+    ps = PrintString()
+
     try:
         tss = TweetSearchSupport()
         ts = tss.get_ts()
         today = datetime.datetime.now().date()
         tso = tss.generate_user_order("NoxHiems", today)
         count = 0
+        foreign_tweet_counter = 0
+        processor = TwitterKoreanProcessor()
         for tweet in ts.search_tweets_iterable(tso):
             tweet_text = ('%s @%s tweeted: %s' % (tweet['created_at'], tweet['user']['screen_name'], tweet['text']))
             print tweet_text
+            tokens = processor.tokenize(tweet['text'])
+            new_tokens = []
+            for token in tokens:
+                foreign_flag = False
+                if token.pos == 'Foreign' and not foreign_flag:
+                    foreign_tweet_counter += 1
+                    foreign_flag = True
+                new_tokens.append((token.text.encode('utf-8'), token.pos))
+            ps.print_tokens(new_tokens)
             count += 1
-        return api_bp.make_response(status=API_STATUS_OK, result = {"result" : True , "count" : count})
+        return api_bp.make_response(status=API_STATUS_OK, result = {"result" : True , "count" : count, "foreign_count" : foreign_tweet_counter})
     except TwitterSearchException as e:
         print e
         return api_bp.make_response(status=API_STATUS_UNKNOWN, result=dict())

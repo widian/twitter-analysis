@@ -40,7 +40,7 @@ class TweetSearchSupport(object):
 #            tweet_text = ('%s @%s tweeted: %s' % (tweet['created_at'], tweet['user']['screen_name'], tweet['text']))
 #            print tweet_text
         tso.set_keywords(name_list, or_operator=or_operator)
-        tso.set_language('ko')
+#        tso.set_language('jp')
         tso.set_include_entities(False)
         tso.set_since(start_date - datetime.timedelta(days=8))
         tso.set_until(start_date - datetime.timedelta(days=1))
