@@ -5,9 +5,18 @@ import datetime
 
 from TwitterSearch import TwitterSearchException
 from twitter import TwitterError 
+from sqlalchemy import create_engine
 
 from application.tweet_support import TweetSearchSupport
 from application.tweet_support import TweetSupport
+try:
+    from config import SQLALCHEMY_DATABASE_URI
+except:
+    print 'SQLALCHEMY_DATABASE_URI is not exist'
+    exit()
+
+engine = create_engine(SQLALCHEMY_DATABASE_URI)
+
 
 def crawling_tweet_user():
     from twkorean import TwitterKoreanProcessor
@@ -74,4 +83,4 @@ if __name__ == "__main__":
 #    get_followers()
 #    get_rate_limit_status()
 #    get_user_info('lys2419')
-#    print 'do nothing'
+    print 'do nothing'
