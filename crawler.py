@@ -7,8 +7,7 @@ from TwitterSearch import TwitterSearchException
 from twitter import TwitterError 
 from sqlalchemy import create_engine
 
-from application.tweet_support import TweetSearchSupport
-from application.tweet_support import TweetSupport
+from support.tweet_support import TweetSupport
 try:
     from config import SQLALCHEMY_DATABASE_URI
 except:
@@ -19,9 +18,6 @@ engine = create_engine(SQLALCHEMY_DATABASE_URI)
 
 
 def crawling_tweet_user():
-    from twkorean import TwitterKoreanProcessor
-    from application.util import PrintString
-    ps = PrintString()
     try:
         ts = TweetSupport()
         api = ts.get_api()
