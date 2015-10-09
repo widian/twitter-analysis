@@ -18,6 +18,7 @@ class Crawler(object):
     ts = None
     api = None
     hparser = None
+    process_name = None
     def __init__(self):
         self.ts = TweetSupport()
         self.api = self.ts.get_api()
@@ -60,20 +61,23 @@ class Crawler(object):
             process_name=None, 
             minimum_max_id=None):
         rate_limit = self.get_rate_limit_status()
-        # DEBUG process_name : /statuses/user_timeline
-        # TODO : Need to parse from process_name to inner dictionary iterator
         items = process_name.split('/')
-        target_dict = rate_limit['resources']
-        for item in items[1:]:
-            target_dict = target_dict[item]
-        # print result > {u'reset': 1444362152, u'limit': 180, u'remaining': 0}
+        target_dict = rate_limit['resources'][items[1]][process_name]
         limit_since = datetime.datetime.fromtimestamp(int(target_dict['reset']))
         sess = Session()
-        sess.add(RateLimit(limit_since, process_name, minimum_max_id=minimum_max_id))
-        sess.commit()
+        cached_rate_limit = sess.query(RateLimit) \
+                                .filter(RateLimit.process_name == process_name) \
+                                .filter(RateLimit.limit > datetime.datetime.now()).first()
+        if cached_rate_limit is not None:
+            #TODO : process wait until rate limit is broken
+            print cached_rate_limit.limit
+        else:
+            sess.add(RateLimit(limit_since, process_name, minimum_max_id=minimum_max_id))
+            sess.commit()
         sess.close()
+        #TODO : wait process and restart from rate_limit row information
         print 'rate limit!'
-        print case['message']
+        #print case['message']
     def to_datetime(self, datestring):
         """ referenced from
             http://stackoverflow.com/questions/7703865/going-from-twitter-date-to-python-datetime-date
@@ -84,16 +88,18 @@ class Crawler(object):
    
 class UserTimelineCrawler(Crawler):
     minimum_max_id = None
-    process_name = '/statuses/user_timeline'
     def __init__(self):
         Crawler.__init__(self)
+        self.process_name = '/statuses/user_timeline'
     
     def crawling(self, username):
+        # sess => session
         sess = None
         try:
             sess = Session()
-
+    
             while True:
+                # This routine must be shutdowned when result doesn't exist.
                 statuses = self.api.GetUserTimeline(
                         screen_name=username,
                         max_id=self.minimum_max_id)
@@ -150,6 +156,33 @@ class UserTimelineCrawler(Crawler):
                 sess.close()
             return False
 
+class UserFollowerIDs(Crawler):
+    def __init__(self):
+        Crawler.__init__(self)
+        self.process_name = '/followers/ids'
+
+    def crawling(self, username):
+        sess = None
+        try:
+            ts = TweetSupport()
+            api = ts.get_api()
+            follower_ids = api.GetFollowerIDs(screen_name=username)
+    #        for follower in follower_ids:
+    #            try:
+    #                print "------------%s-----------" % (follower)
+    #                print api.GetUser(user_id=follower).GetDescription()
+    #            except TwitterError as api_error:
+    #                print api_error
+            print follower_ids
+        except TwitterError as e:
+            t = TweetErrorHandler(e)
+            t.add_handler(88, self.rate_limit_handler)
+            t.invoke(process_name=self.process_name)
+            if sess is not None:
+                sess.commit()
+                sess.close()
+            return False
+
 if __name__ == "__main__":
     def crawling_tweet_search():
         try:
@@ -176,36 +209,6 @@ if __name__ == "__main__":
             print e
             return True
 
-    def get_followers():
-        try:
-            ts = TweetSupport()
-            api = ts.get_api()
-            follower_ids = api.GetFollowerIDs(screen_name='saenuridang')
-            print len(follower_ids)
-    #        for follower in follower_ids:
-    #            try:
-    #                print "------------%s-----------" % (follower)
-    #                print api.GetUser(user_id=follower).GetDescription()
-    #            except TwitterError as api_error:
-    #                print api_error
-        except TwitterError as e:
-            t = TweetErrorHandler(e)
-            t.add_handler(88, self.rate_limit_handler)
-            t.invoke(process_name='/followers/ids')
-            if sess is not None:
-                sess.commit()
-                sess.close()
-            print e
-            return False
-
-    def get_rate_limit_status():
-        try:
-            ts = TweetSupport()
-            api = ts.get_api()
-            print api.GetRateLimitStatus()
-        except TwitterError as e:
-            print e
-
     def get_user_info(screen_name):
         try:
             ts = TweetSupport()
@@ -214,8 +217,7 @@ if __name__ == "__main__":
         except TwitterError as e:
             print e
 #    crawling_tweet_search()
-#    get_followers()
 #    get_rate_limit_status()
 #    get_user_info('lys2419')
-    UserTimelineCrawler().crawling('doosanbears1982')
-
+#    UserTimelineCrawler().crawling('doosanbears1982')
+    UserFollowerIDs().rate_limit_handler(None, process_name='/followers/ids')
