@@ -60,18 +60,18 @@ class Crawler(object):
     def rate_limit_handler(self, case, 
             process_name=None, 
             minimum_max_id=None):
-        rate_limit = self.get_rate_limit_status()
-        items = process_name.split('/')
-        target_dict = rate_limit['resources'][items[1]][process_name]
-        limit_since = datetime.datetime.fromtimestamp(int(target_dict['reset']))
         sess = Session()
         cached_rate_limit = sess.query(RateLimit) \
                                 .filter(RateLimit.process_name == process_name) \
                                 .filter(RateLimit.limit > datetime.datetime.now()).first()
         if cached_rate_limit is not None:
             #TODO : process wait until rate limit is broken
-            print cached_rate_limit.limit
+            print "wait to", cached_rate_limit.limit
         else:
+            rate_limit = self.get_rate_limit_status()
+            items = process_name.split('/')
+            target_dict = rate_limit['resources'][items[1]][process_name]
+            limit_since = datetime.datetime.fromtimestamp(int(target_dict['reset']))
             sess.add(RateLimit(limit_since, process_name, minimum_max_id=minimum_max_id))
             sess.commit()
         sess.close()
@@ -219,5 +219,5 @@ if __name__ == "__main__":
 #    crawling_tweet_search()
 #    get_rate_limit_status()
 #    get_user_info('lys2419')
-#    UserTimelineCrawler().crawling('doosanbears1982')
-    UserFollowerIDs().rate_limit_handler(None, process_name='/followers/ids')
+    UserTimelineCrawler().crawling('noxhiems')
+#    UserFollowerIDs().rate_limit_handler(None, process_name='/followers/ids')
