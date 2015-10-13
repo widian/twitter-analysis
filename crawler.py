@@ -97,7 +97,7 @@ class UserTimelineCrawler(Crawler):
         sess = None
         try:
             sess = Session()
-    
+            cached_maximum_id = None
             while True:
                 # This routine must be shutdowned when result doesn't exist.
                 statuses = self.api.GetUserTimeline(
@@ -107,7 +107,14 @@ class UserTimelineCrawler(Crawler):
                 target_user_id = None
                 for tweet in statuses:
                     target_user_id = tweet.user.id
-
+                    if cached_maximum_id is None:
+                        cached_row = sess.query(func.max(Tweet.id)).filter(Tweet.user == target_user_id).first()
+                        if cached_row[0] is None:
+                            cached_maximum_id = 0
+                        else:
+                            """ cache에서 가지고 있는 minimum id를 새 minimum_max_id로 지정해줌. 
+                            """
+                            cached_maximum_id = cached_row[0]
                     self.minimum_max_id = tweet.id
                     exist = sess.query(Tweet).filter(Tweet.id==tweet.id).first()
                     if not exist:
@@ -130,16 +137,12 @@ class UserTimelineCrawler(Crawler):
                 if self.minimum_max_id is None:
                     break
                 else:
+                    #TODO : 같은 sess를 사용하고 있어서 여기서 얻은 maximum_id가 새로 add한 maximum_id가 되버리는 사태가발생
                     """ 만약 캐시된 tweet_id의 maximum이 이번 검색에서 얻은 minimum_id보다 작다면
                     """
-                    cached_row = sess.query(func.max(Tweet.id)).filter(Tweet.user == target_user_id).first()
-                    if cached_row[0] is not None:
-                        """ cache에서 가지고 있는 minimum id를 새 minimum_max_id로 지정해줌. 
-                        """
-                        maximum_cached_id = cached_row[0]
-                        if maximum_cached_id > self.minimum_max_id:
-                            cached_row = sess.query(func.min(Tweet.id)).filter(Tweet.user == target_user_id).first()
-                            self.minimum_max_id = cached_row[0]
+                    if cached_maximum_id > self.minimum_max_id:
+                        cached_row = sess.query(func.min(Tweet.id)).filter(Tweet.user == target_user_id).first()
+                        self.minimum_max_id = cached_row[0]
                     """ 최종에는 - 1
                     """
                     self.minimum_max_id -= 1
