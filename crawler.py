@@ -5,7 +5,6 @@ import datetime, re
 from email.utils import parsedate_tz
 from HTMLParser import HTMLParser
 
-from TwitterSearch import TwitterSearchException
 from twitter import TwitterError 
 
 from support.tweet_support import TweetSupport, TweetErrorHandler
@@ -78,6 +77,7 @@ class Crawler(object):
         #TODO : wait process and restart from rate_limit row information
         print 'rate limit!'
         #print case['message']
+
     def to_datetime(self, datestring):
         """ referenced from
             http://stackoverflow.com/questions/7703865/going-from-twitter-date-to-python-datetime-date
@@ -85,6 +85,24 @@ class Crawler(object):
         time_tuple = parsedate_tz(datestring.strip())
         dt = datetime.datetime(*time_tuple[:6])
         return dt - datetime.timedelta(seconds=time_tuple[-1])
+
+    def user_info(self):
+        def get_user_info(self, screen_name):
+            process_name = "/users/lookup"
+            try:
+                ts = TweetSupport()
+                api = ts.get_api()
+                #TODO : GetUser 부분을 database에 저장하도록 변경
+                print api.GetUser(screen_name=screen_name)
+                return screen_name
+            except TwitterError as e:
+                t = TweetErrorHandler(e)
+                t.add_handler(88, self.rate_limit_handler)
+                t.invoke(process_name=process_name)
+                if sess is not None:
+                    sess.commit()
+                    sess.close()
+                return screen_name 
    
 class UserTimelineCrawler(Crawler):
     minimum_max_id = None
@@ -105,6 +123,8 @@ class UserTimelineCrawler(Crawler):
                         max_id=self.minimum_max_id)
                 self.minimum_max_id = None
                 target_user_id = None
+
+                #TODO : Call user_info API if cached user_info doesn't exist. Then, matching user_id to target_user_id from cache.
                 for tweet in statuses:
                     target_user_id = tweet.user.id
                     if cached_maximum_id is None:
@@ -135,9 +155,11 @@ class UserTimelineCrawler(Crawler):
                     tweet_text = ('%s %s @%s tweeted: %s' % (tweet.id, tweet.created_at, tweet.GetUser().screen_name, tweet.text))
                     print tweet_text 
                 if self.minimum_max_id is None:
+                    """ No result with self.api.GetUSerTimeline
+                    """
+
                     break
                 else:
-                    #TODO : 같은 sess를 사용하고 있어서 여기서 얻은 maximum_id가 새로 add한 maximum_id가 되버리는 사태가발생
                     """ 만약 캐시된 tweet_id의 maximum이 이번 검색에서 얻은 minimum_id보다 작다면
                     """
                     if cached_maximum_id > self.minimum_max_id:
@@ -170,12 +192,6 @@ class UserFollowerIDs(Crawler):
             ts = TweetSupport()
             api = ts.get_api()
             follower_ids = api.GetFollowerIDs(screen_name=username)
-    #        for follower in follower_ids:
-    #            try:
-    #                print "------------%s-----------" % (follower)
-    #                print api.GetUser(user_id=follower).GetDescription()
-    #            except TwitterError as api_error:
-    #                print api_error
             print follower_ids
         except TwitterError as e:
             t = TweetErrorHandler(e)
@@ -212,15 +228,8 @@ if __name__ == "__main__":
             print e
             return True
 
-    def get_user_info(screen_name):
-        try:
-            ts = TweetSupport()
-            api = ts.get_api()
-            print api.GetUser(screen_name=screen_name)
-        except TwitterError as e:
-            print e
 #    crawling_tweet_search()
-#    get_rate_limit_status()
 #    get_user_info('lys2419')
-    UserTimelineCrawler().crawling('noxhiems')
+#    UserTimelineCrawler().crawling('moonriver365')
+#    print UserTimelineCrawler().get_rate_limit_status()
 #    UserFollowerIDs().rate_limit_handler(None, process_name='/followers/ids')
