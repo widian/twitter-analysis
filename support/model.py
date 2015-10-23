@@ -29,13 +29,13 @@ class Tweet(Base):
 class User(Base):
     __tablename__ = 'user'
 
-    def __init__(self, id, screen_name):
+    def __init__(self, id, screen_name, statuses_count):
         self.id = id
         self.screen_name = screen_name
+        self.statuses_count = statuses_count
         self.collected_date = datetime.datetime.now()
 
     id = Column(BigInteger, primary_key=True)
-    name = Column(String(21))
     screen_name = Column(String(16), unique=True)
     statuses_count = Column(Integer)
     collected_date = Column(DateTime, nullable=False)
