@@ -9,7 +9,7 @@ from twitter import TwitterError
 
 from support.tweet_support import TweetSupport, TweetErrorHandler
 from support.mysql_support import Session
-from support.model import RateLimit, User, Tweet
+from support.model import RateLimit, User, Tweet, Relationship
 
 from sqlalchemy import func
 
@@ -78,6 +78,7 @@ class Crawler(object):
             limit_since = datetime.datetime.fromtimestamp(int(target_dict['reset']))
             sess.add(RateLimit(limit_since, process_name, minimum_max_id=minimum_max_id))
             sess.commit()
+            print "wait to", limit_since
         sess.close()
         #TODO : wait process and restart from rate_limit row information
         print 'rate limit!'
@@ -94,7 +95,6 @@ class Crawler(object):
     def user_info( func ):
         def get_user_info(self, screen_name):
             process_name = "/users/show/: id"
-            #TODO : 이미 유저정보가 캐시되어있으면 users/show/: id을 하지 않도록 변경
             sess = Session()
             exist = sess.query(User).filter(User.screen_name == screen_name).first()
             if exist:
@@ -104,7 +104,6 @@ class Crawler(object):
                 try:
                     ts = TweetSupport()
                     api = ts.get_api()
-                    #TODO : GetUser 부분을 database에 저장하도록 변경
                     user = api.GetUser(screen_name=screen_name)
                     user_chunk = User(
                         user.id,
@@ -138,7 +137,6 @@ class UserTimelineCrawler(Crawler):
         try:
             sess = Session()
             cached_maximum_id = None
-            target_user_id = user_id
             while True:
                 # This routine must be shutdowned when result doesn't exist.
                 statuses = self.api.GetUserTimeline(
@@ -146,10 +144,9 @@ class UserTimelineCrawler(Crawler):
                         max_id=self.minimum_max_id)
                 self.minimum_max_id = None
 
-                #TODO : Call user_info API if cached user_info doesn't exist. Then, matching user_id to target_user_id from cache.
                 for tweet in statuses:
                     if cached_maximum_id is None:
-                        cached_row = sess.query(func.max(Tweet.id)).filter(Tweet.user == target_user_id).first()
+                        cached_row = sess.query(func.max(Tweet.id)).filter(Tweet.user == user_id).first()
                         if cached_row[0] is None:
                             cached_maximum_id = 0
                         else:
@@ -172,7 +169,8 @@ class UserTimelineCrawler(Crawler):
                             tweet_chunk.reply_to = tweet.in_reply_to_user_id
                         sess.add(tweet_chunk)
 
-                    # print tweet search result
+                    """ print tweet search result (Unnecessary)
+                    """
                     tweet_text = ('%s %s @%s tweeted: %s' % (tweet.id, tweet.created_at, tweet.GetUser().screen_name, tweet.text))
                     print tweet_text 
                 if self.minimum_max_id is None:
@@ -183,13 +181,11 @@ class UserTimelineCrawler(Crawler):
                     """ 만약 캐시된 tweet_id의 maximum이 이번 검색에서 얻은 minimum_id보다 작다면
                     """
                     if cached_maximum_id > self.minimum_max_id:
-                        cached_row = sess.query(func.min(Tweet.id)).filter(Tweet.user == target_user_id).first()
+                        cached_row = sess.query(func.min(Tweet.id)).filter(Tweet.user == user_id).first()
                         self.minimum_max_id = cached_row[0]
                     """ 최종에는 - 1
                     """
                     self.minimum_max_id -= 1
-                    print self.minimum_max_id
-
             sess.commit()
             sess.close()
             return True
@@ -208,13 +204,25 @@ class UserFollowerIDs(Crawler):
         self.process_name = '/followers/ids'
 
     @Crawler.user_info
-    def crawling(self, username, user_id):
+    def crawling(self, screen_name, user_id):
         sess = None
         try:
             ts = TweetSupport()
             api = ts.get_api()
-            follower_ids = api.GetFollowerIDs(screen_name=username)
-            print follower_ids
+            follower_ids = api.GetFollowerIDs(screen_name=screen_name)
+            sess = Session()
+            for id in follower_ids:
+                exist = sess.query(Relationship).filter(Relationship.following == user_id).filter(Relationship.follower == id).first()
+                if exist:
+                    continue
+                else:
+                    relationship_chunk = Relationship(
+                            user_id,
+                            id)
+                    sess.add(relationship_chunk)
+                print id, " "
+            sess.commit()
+            sess.close()
         except TwitterError as e:
             t = TweetErrorHandler(e)
             t.add_handler(88, self.rate_limit_handler)
@@ -252,6 +260,6 @@ if __name__ == "__main__":
 
 #    crawling_tweet_search()
 #    get_user_info('lys2419')
-    UserTimelineCrawler().crawling('NoxHiems')
+#    UserTimelineCrawler().crawling('NoxHiems')
 #    print UserTimelineCrawler().get_rate_limit_status()
-#    UserFollowerIDs().rate_limit_handler(None, process_name='/followers/ids')
+    UserFollowerIDs().crawling('lys2419')

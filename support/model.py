@@ -39,6 +39,19 @@ class User(Base):
     screen_name = Column(String(16), unique=True)
     statuses_count = Column(Integer)
     collected_date = Column(DateTime, nullable=False)
+    
+class Relationship(Base):
+    __tablename__ = 'relationship'
+
+    def __init__(self, following, follower):
+        self.following = following
+        self.follower = follower
+        self.collected_date = datetime.datetime.now()
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    following = Column(BigInteger, nullable=False)
+    follower = Column(BigInteger, nullable=False)
+    collected_date = Column(DateTime, nullable=False)
 
 class RateLimit(Base):
     __tablename__ = 'rate_limit'
