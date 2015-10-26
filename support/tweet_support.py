@@ -38,6 +38,9 @@ class TweetErrorHandler(object):
         else:
             """ error container is list"""
         for case in self.error_container:
+            if not isinstance(case, dict):
+                print case 
+                continue
             if case['code'] in self.error_handler:
                 self.error_handler[case['code']](case, **kwargs)
             else:

@@ -11,7 +11,8 @@ from support.tweet_support import TweetSupport, TweetErrorHandler
 from support.mysql_support import Session
 from support.model import RateLimit, User, Tweet, Relationship
 
-from sqlalchemy import func
+from sqlalchemy import func, or_
+from sqlalchemy.exc import IntegrityError
 
 class Crawler(object):
     ts = None
@@ -23,7 +24,7 @@ class Crawler(object):
         self.api = self.ts.get_api()
         self.hparser = HTMLParser()
 
-    def crawling(self, screen_name, user_id=None):
+    def crawling(self, user_id):
         #TODO : NEED TO RAISE NOT IMPLEMENTED ERROR
         print "NOT IMPLEMENTED CRAWLING FUNCTION"
         return False
@@ -82,7 +83,6 @@ class Crawler(object):
         sess.close()
         #TODO : wait process and restart from rate_limit row information
         print 'rate limit!'
-        #print case['message']
 
     def to_datetime(self, datestring):
         """ referenced from
@@ -93,26 +93,29 @@ class Crawler(object):
         return dt - datetime.timedelta(seconds=time_tuple[-1])
 
     def user_info( func ):
-        def get_user_info(self, screen_name):
+        def get_user_info(self, screen_name=None, user_id=None):
             process_name = "/users/show/: id"
             sess = Session()
-            exist = sess.query(User).filter(User.screen_name == screen_name).first()
+            exist = sess.query(User).filter(or_(User.screen_name == screen_name,
+                                                User.id == user_id)).first()
             if exist:
                 sess.close()
-                return func(self, screen_name, exist.id)
+                return func(self, exist.id)
             else:
                 try:
                     ts = TweetSupport()
                     api = ts.get_api()
-                    user = api.GetUser(screen_name=screen_name)
+                    user = api.GetUser(screen_name=screen_name, user_id=user_id)
                     user_chunk = User(
                         user.id,
+                        user.name,
                         user.screen_name,
-                        user.statuses_count)
+                        user.statuses_count,
+                        user.followers_count)
                     sess.add(user_chunk)
                     sess.commit()
                     sess.close()
-                    return func(self, screen_name, user.id)
+                    return func(self, user.id)
                 except TwitterError as e:
                     t = TweetErrorHandler(e)
                     t.add_handler(88, self.rate_limit_handler)
@@ -131,7 +134,7 @@ class UserTimelineCrawler(Crawler):
         self.process_name = '/statuses/user_timeline'
     
     @Crawler.user_info
-    def crawling(self, username, user_id):
+    def crawling(self, user_id):
         # sess => session
         sess = None
         try:
@@ -140,7 +143,7 @@ class UserTimelineCrawler(Crawler):
             while True:
                 # This routine must be shutdowned when result doesn't exist.
                 statuses = self.api.GetUserTimeline(
-                        screen_name=username,
+                        user_id=user_id,
                         max_id=self.minimum_max_id)
                 self.minimum_max_id = None
 
@@ -204,14 +207,17 @@ class UserFollowerIDs(Crawler):
         self.process_name = '/followers/ids'
 
     @Crawler.user_info
-    def crawling(self, screen_name, user_id):
+    def crawling(self, user_id):
         sess = None
         try:
             ts = TweetSupport()
             api = ts.get_api()
-            follower_ids = api.GetFollowerIDs(screen_name=screen_name)
+            follower_ids = api.GetFollowerIDs(user_id=user_id)
             sess = Session()
+            remained = len(follower_ids)
             for id in follower_ids:
+                remained -= 1
+                print "add ", remained
                 exist = sess.query(Relationship).filter(Relationship.following == user_id).filter(Relationship.follower == id).first()
                 if exist:
                     continue
@@ -220,9 +226,9 @@ class UserFollowerIDs(Crawler):
                             user_id,
                             id)
                     sess.add(relationship_chunk)
-                print id, " "
             sess.commit()
             sess.close()
+            return True
         except TwitterError as e:
             t = TweetErrorHandler(e)
             t.add_handler(88, self.rate_limit_handler)
@@ -259,7 +265,5 @@ if __name__ == "__main__":
             return True
 
 #    crawling_tweet_search()
-#    get_user_info('lys2419')
-#    UserTimelineCrawler().crawling('NoxHiems')
 #    print UserTimelineCrawler().get_rate_limit_status()
-    UserFollowerIDs().crawling('lys2419')
+#    UserFollowerIDs().crawling('NPAD_Kr')
