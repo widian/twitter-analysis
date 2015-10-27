@@ -13,6 +13,9 @@ class TweetSupport(object):
     def get_api(self):
         return self.api
 
+class TweetErrorNumber(object):
+    RATE_LIMIT_ERROR = 88
+
 class TweetErrorHandler(object):
     error_container = None
     error_handler = dict()
@@ -34,21 +37,24 @@ class TweetErrorHandler(object):
     def invoke(self, **kwargs):
         if self.error_container is None:
             print "Error didn't bind to container"
-            return False
+            return dict() 
         else:
             """ error container is list"""
+        result = dict()
         for case in self.error_container:
             if not isinstance(case, dict):
                 print case 
                 continue
             if case['code'] in self.error_handler:
-                self.error_handler[case['code']](case, **kwargs)
+                result[case['code']] = self.error_handler[case['code']](case, **kwargs)
             else:
                 self.default_handler(case, **kwargs)
+        return result
 
     def default_error_handler(self, case, **kwargs):
         print case['message']
 
+ErrorNumbers = TweetErrorNumber()
 
 if __name__ == '__main__':
     pass

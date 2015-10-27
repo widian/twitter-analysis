@@ -7,7 +7,7 @@ from HTMLParser import HTMLParser
 
 from twitter import TwitterError 
 
-from support.tweet_support import TweetSupport, TweetErrorHandler
+from support.tweet_support import TweetSupport, TweetErrorHandler, ErrorNumbers
 from support.mysql_support import Session
 from support.model import RateLimit, User, Tweet, Relationship
 
@@ -69,9 +69,11 @@ class Crawler(object):
         cached_rate_limit = sess.query(RateLimit) \
                                 .filter(RateLimit.process_name == process_name) \
                                 .filter(RateLimit.limit > datetime.datetime.now()).first()
+        wait_until = None
         if cached_rate_limit is not None:
             #TODO : process wait until rate limit is broken
             print "wait to", cached_rate_limit.limit
+            wait_until = cached_rate_limit.limit
         else:
             rate_limit = self.get_rate_limit_status()
             items = process_name.split('/')
@@ -80,9 +82,11 @@ class Crawler(object):
             sess.add(RateLimit(limit_since, process_name, minimum_max_id=minimum_max_id))
             sess.commit()
             print "wait to", limit_since
+            wait_until = limit_since
         sess.close()
         #TODO : wait process and restart from rate_limit row information
         print 'rate limit!'
+        return (wait_until - datetime.datetime.now() ).total_seconds()
 
     def to_datetime(self, datestring):
         """ referenced from
@@ -118,12 +122,12 @@ class Crawler(object):
                     return func(self, user.id)
                 except TwitterError as e:
                     t = TweetErrorHandler(e)
-                    t.add_handler(88, self.rate_limit_handler)
-                    t.invoke(process_name=process_name)
+                    t.add_handler(ErrorNumbers.RATE_LIMIT_ERROR, self.rate_limit_handler)
+                    result = t.invoke(process_name=process_name)
                     if sess is not None:
                         sess.commit()
                         sess.close()
-                    return False
+                    return result 
         return get_user_info
     user_info = staticmethod(user_info)
    
@@ -190,16 +194,19 @@ class UserTimelineCrawler(Crawler):
                     """
                     self.minimum_max_id -= 1
             sess.commit()
+            target_user = sess.query(User).filter(User.id == user_id).first()
+            target_user.tweet_collected_date = datetime.datetime.now()
+            sess.commit()
             sess.close()
             return True
         except TwitterError as e:
             t = TweetErrorHandler(e)
-            t.add_handler(88, self.rate_limit_handler)
-            t.invoke(process_name=self.process_name, minimum_max_id=self.minimum_max_id)
+            t.add_handler(ErrorNumbers.RATE_LIMIT_ERROR, self.rate_limit_handler)
+            result = t.invoke(process_name=self.process_name, minimum_max_id=self.minimum_max_id)
             if sess is not None:
                 sess.commit()
                 sess.close()
-            return False
+            return result 
 
 class UserFollowerIDs(Crawler):
     def __init__(self):
@@ -231,12 +238,12 @@ class UserFollowerIDs(Crawler):
             return True
         except TwitterError as e:
             t = TweetErrorHandler(e)
-            t.add_handler(88, self.rate_limit_handler)
-            t.invoke(process_name=self.process_name)
+            t.add_handler(ErrorNumbers.RATE_LIMIT_ERROR, self.rate_limit_handler)
+            result = t.invoke(process_name=self.process_name)
             if sess is not None:
                 sess.commit()
                 sess.close()
-            return False
+            return result 
 
 if __name__ == "__main__":
     def crawling_tweet_search():

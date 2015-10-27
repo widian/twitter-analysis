@@ -41,7 +41,8 @@ class User(Base):
     screen_name = Column(String(16), unique=True, nullable=False)
     statuses_count = Column(Integer, nullable=False)
     follower_count = Column(Integer, nullable=False)
-    collected_date = Column(DateTime, nullable=False, default=datetime.datetime.now())
+    tweet_collected_date = Column(DateTime)
+    created_date = Column(DateTime, nullable=False, default=datetime.datetime.now())
     
 class Relationship(Base):
     __tablename__ = 'relationship'
