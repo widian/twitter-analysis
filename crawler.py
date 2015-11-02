@@ -37,17 +37,17 @@ class Crawler(object):
         try:
             # Wide UCS-4 build
 #            \U0001f1f0\U0001f1f7
+            #TODO : 그냥 모든 unrecognized unicode string을 제거하도록 수정해야할듯.
             myre = re.compile(u'['
-                    u'\U0001F1E6-\U0001F1FF'
-                    u'\U0001F300-\U0001F64F'
-                    u'\U0001F680-\U0001F6FF'
+                    u'\U0001F1E6-\U000FFFFF'
                     u'\u2600-\u26FF\u2700-\u27BF]+', 
                     re.UNICODE)
         except re.error:
             # Narrow UCS-2 build
             myre = re.compile(u'('
-                    u'\ud83c[\udde6-\uddff\udf00-\udfff]|'
-                    u'\ud83d[\udc00-\ude4f\ude80-\udeff]|'
+                    u'\ud83c[\udde6-\udfff]|'
+                    u'\ud83d[\ud000-\udeff]|'
+                    u'[\ud84d\uc000-\uffff\uffff]|'
                     u'[\u2600-\u26FF\u2700-\u27BF])+', 
                     re.UNICODE)
         text = self.hparser.unescape(text)
@@ -148,6 +148,7 @@ class UserTimelineCrawler(Crawler):
                 # This routine must be shutdowned when result doesn't exist.
                 statuses = self.api.GetUserTimeline(
                         user_id=user_id,
+                        count=200,
                         max_id=self.minimum_max_id)
                 self.minimum_max_id = None
 
@@ -273,4 +274,4 @@ if __name__ == "__main__":
 
 #    crawling_tweet_search()
 #    print UserTimelineCrawler().get_rate_limit_status()
-#    UserFollowerIDs().crawling('NPAD_Kr')
+    UserFollowerIDs().crawling('Kiatigers')

@@ -18,13 +18,8 @@ if __name__ == '__main__':
 
     result = sess.query(Relationship).filter(Relationship.following == target_id).all()
     for item in result:
-        #TODO : Rate Limit Handling (Rate Limit에 걸렸을 때 대기하기)
         user = sess.query(User).filter(User.id  == item.follower).first()
-        if user.tweet_collected_date is not None and user.tweet_collected_date > datetime.datetime.now() - datetime.timedelta(days=14):
-            print 'pass ', user.screen_name
-            continue
-        else:
-            print 'collect ', user.screen_name
+        if user is None or user.tweet_collected_date is None or user.tweet_collected_date < datetime.datetime.now() - datetime.timedelta(days=14):
             result = timeline_crawler.crawling(user_id=item.follower)
             while result is not True:
                 if ErrorNumbers.RATE_LIMIT_ERROR in result:
@@ -34,7 +29,9 @@ if __name__ == '__main__':
                 else:
                     print " UNKNOWN ERROR "
                     break
-
+        else:
+            print 'pass ', user.screen_name
+            continue
 
     #timeline_crawler.crawling(target_screen_name)
     #print timeline_crawler.get_rate_limit_status()
