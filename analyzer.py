@@ -32,6 +32,7 @@ def analyze(user_id):
                     noun_usage_dict[token.text] = 1
         ps.print_tokens(tokens)
         print(noun_counter)
+    sess.close()
     return noun_usage_dict, noun_counter
 
 def new_analyze():
@@ -41,6 +42,7 @@ def new_analyze():
     processor = TwitterKoreanProcessor(stemming=False)
 
     users = sess.query(User)\
+                .filter(User.language_type == None)\
                 .all()
 
     for user in users:
@@ -68,9 +70,13 @@ def new_analyze():
         else:
             if 'Noun' not in pos_set:
                 print(("%d is Foreigner User") % user_id)
+                user.language_type = 0
             else:
                 print(("%d is Korean User") % user_id)
+                user.language_type = 1
         #print(tweet_counter, pos_set)
+    sess.commit()
+    sess.close()
     return True
 
 class PrintString(object):

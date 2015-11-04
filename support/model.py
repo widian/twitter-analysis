@@ -43,6 +43,7 @@ class User(Base):
     follower_count = Column(Integer, nullable=False)
     tweet_collected_date = Column(DateTime)
     created_date = Column(DateTime, nullable=False, default=datetime.datetime.now())
+    language_type = Column(Integer)
     
 class Relationship(Base):
     __tablename__ = 'relationship'
