@@ -73,3 +73,12 @@ class RateLimit(Base):
     process_name = Column(String(32), nullable=False)
     minimum_max_id = Column(BigInteger)
 
+class LanguageType(Base):
+    __tablename__ = 'language_type'
+
+    def __init__(self, language_type, name):
+        self.language_type = language_type 
+        self.name = name
+
+    language_type = Column(Integer, primary_key=True, nullable=False)
+    name = Column(String(45), nullable=False)

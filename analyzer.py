@@ -35,7 +35,7 @@ def analyze(user_id):
     sess.close()
     return noun_usage_dict, noun_counter
 
-def new_analyze():
+def user_analyze():
     sess = Session()
     ps = PrintString()
 
@@ -79,6 +79,19 @@ def new_analyze():
     sess.close()
     return True
 
+def korean_analyze():
+    import matplotlib.pyplot as plt
+
+    x = [0.4, 0.2, 0.3]
+    y = [10000, 20000, 30000]
+
+    def shows(x):
+        return '$%d횟수' % (x)
+    fig, ax = plt.subplots()
+    ax.fmt_ydata = shows
+    plt.plot(x, y, 'o')
+    plt.show()
+
 class PrintString(object):
     def print_tokens(self, tokens, end="\n"):
         """ https://github.com/jaepil/twkorean
@@ -119,4 +132,6 @@ if __name__ == '__main__':
 #    ps = PrintString()
 #    ps.print_tokens(tokens)
 #
-    new_analyze()
+#    user_analyze()
+#
+    korean_analyze()
