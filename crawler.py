@@ -38,18 +38,36 @@ class Crawler(object):
             # Wide UCS-4 build
 #            \U0001f1f0\U0001f1f7
             #TODO : 그냥 모든 unrecognized unicode string을 제거하도록 수정해야할듯.
+            #TODO : 뭔가 ignoring이 잘못되고있다 >> 박근혜 대통령 > 박근 대령
             myre = re.compile(u'['
-                    u'\U0001F1E6-\U000FFFFF'
+                    u'\U0001F300-\U0001F64F'
+                    u'\U0001F680-\U0001F6C5'
+                    u'\U0001F170-\U0001F251'
+                    u'\u24c2'
+                    u'\u2702-\u27B0'
                     u'\u2600-\u26FF\u2700-\u27BF]+', 
                     re.UNICODE)
         except re.error:
             # Narrow UCS-2 build
+            #\ud83c\udf00 - \ud83d\ude4f > \U0001F300-\U0001F64F
+            #\ud83d\ude80 - \ud83d\udec5 > \U0001F680-\U0001F6C5
+            #\ud83c\udd70 - \ud83c\ude51 > \U0001F170-\U0001F251
             myre = re.compile(u'('
-                    u'\ud83c[\udde6-\udfff]|'
-                    u'\ud83d[\ud000-\udeff]|'
-                    u'[\ud84d\uc000-\uffff\uffff]|'
-                    u'[\u2600-\u26FF\u2700-\u27BF])+', 
+                    u'\ud83c[\udf00-\udfff]|'
+                    u'\ud83d[\udc00-\ude4f]|'
+                    u'\ud83d[\ude80-\udec5]|'
+                    u'\ud83c[\udd70-\ude51]|'
+                    u'[\u24c2]|'
+                    u'[\u2702-\u27B0]|'
+                    u'[\u2600-\u26FF\u2700-\u27BF]'
+                    ')+',
                     re.UNICODE)
+#            myre = re.compile(u'('
+#                    u'\ud83c[\udde6-\udfff]|'
+#                    u'\ud83d[\ud000-\udeff]|'
+#                    u'[\ud84d\uc000-\uffff\uffff]|'
+#                    u'[\u2600-\u26FF\u2700-\u27BF])+', 
+#                    re.UNICODE)
         text = self.hparser.unescape(text)
         return myre.sub('', text)
 
@@ -283,7 +301,16 @@ if __name__ == "__main__":
         except TwitterError as e:
             print e
             return True
-
+    start = u"\uac00"
+    end = u"\ud7a3"
+    c = UserTimelineCrawler()
+    for i in xrange(ord(start), ord(end) + 1):
+        if c.parse_ignore(unichr(i)) == unichr(i):
+            print unichr(i), c.parse_ignore(unichr(i))
+            continue
+        else:
+            print "error!"
+            break
 #    crawling_tweet_search()
-    print UserTimelineCrawler().get_rate_limit_status()
+#    print UserTimelineCrawler().get_rate_limit_status()
 #`    UserFollowerIDs().crawling('Kiatigers')

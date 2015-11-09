@@ -34,8 +34,9 @@ def analyze(user_id):
                     noun_usage_dict[token.text] += 1
                 else:
                     noun_usage_dict[token.text] = 1
+        print(tweet.text)
         ps.print_tokens(tokens)
-        print(noun_counter)
+#        print(noun_counter)
     sess.close()
     return noun_usage_dict, noun_counter, tweet_tokens
 
@@ -133,12 +134,8 @@ class PrintString(object):
             print(")", end=end)
 
 if __name__ == '__main__':
-#    noun_usage_result = analyze(68585222)
-#    noun_usage_dict = noun_usage_result[0]
-#    noun_count = noun_usage_result[1]
-#    for item in OrderedDict(sorted(noun_usage_dict.items(), key = lambda t:t[1], reverse=True)).items():
-#        print(item[0], item[1], "ratio : ", item[1] / float(noun_count))
-        
+    noun_usage_result = analyze(40188579)
+
 #    processor = TwitterKoreanProcessor(stemming=False)
 #    text = u"나바로가 홈런을 쳐서 삼성이 4:0으로 승리했다 쩔엌ㅋㅋㅋㅋㅋ" 
 #    text = u"대신증권사에서 마이다스미소중소형주증권투자신탁상품을 가입했어요"
@@ -149,4 +146,4 @@ if __name__ == '__main__':
 #
 #    user_analyze()
 #
-    korean_analyze()
+#    korean_analyze()
