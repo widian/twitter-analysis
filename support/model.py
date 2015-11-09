@@ -2,7 +2,7 @@
 # -*- coding:utf8 -*-
 
 import datetime
-from sqlalchemy import Integer, String, BigInteger, Column, DateTime
+from sqlalchemy import Integer, String, BigInteger, Column, DateTime, Index
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import UniqueConstraint
 

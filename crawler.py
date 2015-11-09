@@ -97,16 +97,26 @@ class Crawler(object):
         return dt - datetime.timedelta(seconds=time_tuple[-1])
 
     def user_info( func ):
+        """ 특정 crawling이 어떤 user대상이라면, 미리 user정보를 받아오기 위한
+            decorator함수. 
+        """
         def get_user_info(self, screen_name=None, user_id=None):
             process_name = "/users/show/: id"
             sess = Session()
+            """ 만약 해당 유저정보가 이미 저장되어있다면
+            """
             exist = sess.query(User).filter(or_(User.screen_name == screen_name,
                                                 User.id == user_id)).first()
             if exist:
+                """ 세션을 닫고 해당 유저의 id를 추가로 전달. screen_name을 받든, user_id를 받든
+                    crawling 함수에는 user_id를 전달함
+                """
                 sess.close()
                 return func(self, exist.id)
             else:
                 try:
+                    """ Twitter로부터 유저정보를 받은 뒤 DB에 저장.
+                    """
                     ts = TweetSupport()
                     api = ts.get_api()
                     user = api.GetUser(screen_name=screen_name, user_id=user_id)
@@ -121,6 +131,8 @@ class Crawler(object):
                     sess.close()
                     return func(self, user.id)
                 except TwitterError as e:
+                    """ Error처리는 다른 함수와 동일
+                    """
                     t = TweetErrorHandler(e)
                     t.add_handler(ErrorNumbers.RATE_LIMIT_ERROR, self.rate_limit_handler)
                     result = t.invoke(process_name=process_name)
@@ -273,5 +285,5 @@ if __name__ == "__main__":
             return True
 
 #    crawling_tweet_search()
-#    print UserTimelineCrawler().get_rate_limit_status()
-    UserFollowerIDs().crawling('Kiatigers')
+    print UserTimelineCrawler().get_rate_limit_status()
+#`    UserFollowerIDs().crawling('Kiatigers')

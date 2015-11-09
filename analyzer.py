@@ -10,6 +10,8 @@ from twkorean import TwitterKoreanProcessor
 
 from support.mysql_support import Session
 from support.model import Tweet, User
+from sqlalchemy import desc
+
 
 def analyze(user_id):
     sess = Session()
@@ -21,8 +23,10 @@ def analyze(user_id):
                  .all()
     noun_usage_dict = OrderedDict()
     noun_counter = 0
+    tweet_tokens = list()
     for tweet in tweets:
         tokens = processor.tokenize(tweet.text)
+        tweet_tokens.append(tokens)
         for token in tokens:
             if token.pos == 'Noun':
                 noun_counter += 1
@@ -33,7 +37,7 @@ def analyze(user_id):
         ps.print_tokens(tokens)
         print(noun_counter)
     sess.close()
-    return noun_usage_dict, noun_counter
+    return noun_usage_dict, noun_counter, tweet_tokens
 
 def user_analyze():
     sess = Session()
@@ -43,6 +47,7 @@ def user_analyze():
 
     users = sess.query(User)\
                 .filter(User.language_type == None)\
+                .filter(User.tweet_collected_date != None)\
                 .all()
 
     for user in users:
@@ -52,6 +57,7 @@ def user_analyze():
         tweet_counter = 0
         tweets = sess.query(Tweet)\
                  .filter(Tweet.user == user_id)\
+                 .order_by(desc(Tweet.id))\
                  .limit(200)\
                  .all()
 
@@ -67,6 +73,7 @@ def user_analyze():
                         noun_usage_dict[token.text] = 1
         if len(tweets) < 200:
             print(("%d is Unknown User. Tweet Count : %d") % (user_id, len(tweets)))
+            user.language_type = -1
         else:
             if 'Noun' not in pos_set:
                 print(("%d is Foreigner User") % user_id)
@@ -81,9 +88,17 @@ def user_analyze():
 
 def korean_analyze():
     import matplotlib.pyplot as plt
-
-    x = [0.4, 0.2, 0.3]
-    y = [10000, 20000, 30000]
+    noun_usage_result = analyze(40188579)
+    noun_usage_dict = noun_usage_result[0]
+    noun_count = noun_usage_result[1]
+    x = list()
+    y = list()
+    count = 0
+    for item in OrderedDict(sorted(noun_usage_dict.items(), key = lambda t:t[1], reverse=True)).items():
+        count += 1
+        x.append(count)
+        y.append(item[1])
+        print(item[0], item[1], "ratio : ", item[1] / float(noun_count))
 
     def shows(x):
         return '$%d횟수' % (x)
