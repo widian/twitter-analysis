@@ -36,28 +36,32 @@ class Crawler(object):
         myre = None
         try:
             # Wide UCS-4 build
-#            \U0001f1f0\U0001f1f7
             #TODO : 그냥 모든 unrecognized unicode string을 제거하도록 수정해야할듯.
-            #TODO : 뭔가 ignoring이 잘못되고있다 >> 박근혜 대통령 > 박근 대령
             myre = re.compile(u'['
-                    u'\U0001F300-\U0001F64F'
-                    u'\U0001F680-\U0001F6C5'
+                    u'\U0001F004'
+                    u'\U0001F0CF'
+                    u'\U0001F300-\U0001F6FF'
                     u'\U0001F170-\U0001F251'
+                    u'\U0001F910-\U0001F9C0'
+                    u'\U000FE300-\U000FE7FF'
                     u'\u24c2'
                     u'\u2702-\u27B0'
                     u'\u2600-\u26FF\u2700-\u27BF]+', 
                     re.UNICODE)
         except re.error:
             # Narrow UCS-2 build
-            #\ud83c\udf00 - \ud83d\ude4f > \U0001F300-\U0001F64F
-            #\ud83d\ude80 - \ud83d\udec5 > \U0001F680-\U0001F6C5
+            #\ud83c\udf00 - \ud83d\ude4f > \U0001F300-\U0001F6FF
+            #\ud83d\ude80 - \ud83d\udef3 > \U0001F680-\U0001F6F3
             #\ud83c\udd70 - \ud83c\ude51 > \U0001F170-\U0001F251
+            #\ud83e\udd10 - \ud83e\uddc0 > \U0001F910-\U0001F9C0
+            #\udbb8\udf00 - \udbb9\udfff > \U000FE300-\U000FE7FF
             myre = re.compile(u'('
-                    u'\ud83c[\udf00-\udfff]|'
-                    u'\ud83d[\udc00-\ude4f]|'
-                    u'\ud83d[\ude80-\udec5]|'
-                    u'\ud83c[\udd70-\ude51]|'
-                    u'[\u24c2]|'
+                    u'\ud83c[\udc04\udccf\udd70-\ude51\udf00-\udfff]|'
+                    u'\ud83d[\udc00-\udeff]|'
+                    u'\ud83e[\udd10-\uddc0]|'
+                    u'\udbb8[\udf00-\udfff]|'
+                    u'\udbb9[\udc00-\udfff]|'
+                    u'[\u2026\u24c2]|'
                     u'[\u2702-\u27B0]|'
                     u'[\u2600-\u26FF\u2700-\u27BF]'
                     ')+',
@@ -301,16 +305,18 @@ if __name__ == "__main__":
         except TwitterError as e:
             print e
             return True
-    start = u"\uac00"
-    end = u"\ud7a3"
-    c = UserTimelineCrawler()
-    for i in xrange(ord(start), ord(end) + 1):
-        if c.parse_ignore(unichr(i)) == unichr(i):
-            print unichr(i), c.parse_ignore(unichr(i))
-            continue
-        else:
-            print "error!"
-            break
+    def korean_test():
+        start = u"\uac00"
+        end = u"\ud7a3"
+        c = UserTimelineCrawler()
+        for i in xrange(ord(start), ord(end) + 1):
+            if c.parse_ignore(unichr(i)) == unichr(i):
+                print unichr(i), c.parse_ignore(unichr(i))
+                continue
+            else:
+                print "error!"
+                break
+    korean_test()
 #    crawling_tweet_search()
 #    print UserTimelineCrawler().get_rate_limit_status()
 #`    UserFollowerIDs().crawling('Kiatigers')

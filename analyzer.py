@@ -87,9 +87,9 @@ def user_analyze():
     sess.close()
     return True
 
-def korean_analyze():
+def korean_analyze(user_id):
     import matplotlib.pyplot as plt
-    noun_usage_result = analyze(40188579)
+    noun_usage_result = analyze(user_id)
     noun_usage_dict = noun_usage_result[0]
     noun_count = noun_usage_result[1]
     x = list()
@@ -134,7 +134,7 @@ class PrintString(object):
             print(")", end=end)
 
 if __name__ == '__main__':
-    noun_usage_result = analyze(40188579)
+#    noun_usage_result = analyze(9040962)
 
 #    processor = TwitterKoreanProcessor(stemming=False)
 #    text = u"나바로가 홈런을 쳐서 삼성이 4:0으로 승리했다 쩔엌ㅋㅋㅋㅋㅋ" 
@@ -146,4 +146,4 @@ if __name__ == '__main__':
 #
 #    user_analyze()
 #
-#    korean_analyze()
+    korean_analyze(9040962)
