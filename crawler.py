@@ -43,7 +43,7 @@ class Crawler(object):
                     u'\U0001F300-\U0001F6FF'
                     u'\U0001F170-\U0001F251'
                     u'\U0001F910-\U0001F9C0'
-                    u'\U000FE300-\U000FE7FF'
+                    u'\U000FE300-\U000FEBFF'
                     u'\u24c2'
                     u'\u2702-\u27B0'
                     u'\u2600-\u26FF\u2700-\u27BF]+', 
@@ -54,13 +54,14 @@ class Crawler(object):
             #\ud83d\ude80 - \ud83d\udef3 > \U0001F680-\U0001F6F3
             #\ud83c\udd70 - \ud83c\ude51 > \U0001F170-\U0001F251
             #\ud83e\udd10 - \ud83e\uddc0 > \U0001F910-\U0001F9C0
-            #\udbb8\udf00 - \udbb9\udfff > \U000FE300-\U000FE7FF
+            #\udbb8\udf00 - \udbba\udfff > \U000FE300-\U000FEBFF
             myre = re.compile(u'('
                     u'\ud83c[\udc04\udccf\udd70-\ude51\udf00-\udfff]|'
                     u'\ud83d[\udc00-\udeff]|'
                     u'\ud83e[\udd10-\uddc0]|'
                     u'\udbb8[\udf00-\udfff]|'
                     u'\udbb9[\udc00-\udfff]|'
+                    u'\udbba[\udc00-\udfff]|'
                     u'[\u2026\u24c2]|'
                     u'[\u2702-\u27B0]|'
                     u'[\u2600-\u26FF\u2700-\u27BF]'
