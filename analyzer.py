@@ -146,4 +146,6 @@ if __name__ == '__main__':
 #
 #    user_analyze()
 #
-    korean_analyze(9040962)
+    korean_analyze(14206146)
+
+

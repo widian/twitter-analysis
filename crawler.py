@@ -36,32 +36,46 @@ class Crawler(object):
         myre = None
         try:
             # Wide UCS-4 build
-            #TODO : 그냥 모든 unrecognized unicode string을 제거하도록 수정해야할듯.
+            # 4byte UTF-8 한자 문제 (3, 4 수준)
+            """ https://www.softel.co.jp/blogs/tech/archives/596 """
+
             myre = re.compile(u'['
                     u'\U0001F004'
                     u'\U0001F0CF'
                     u'\U0001F300-\U0001F6FF'
-                    u'\U0001F170-\U0001F251'
+                    u'\U0001F140-\U0001F251'
                     u'\U0001F910-\U0001F9C0'
-                    u'\U000FE300-\U000FEBFF'
+                    u'\U000FE000-\U000FECFF'
+# 여기까지 이모지.
+                    u'\U000F0800-\U000F08FF'
+                    u'\U00023103'
+                    u'\U00010100-\U000101FF'
+# 여기까지 확장형(사실 파이썬에선 확장형 전부 밴해야함)
                     u'\u24c2'
                     u'\u2702-\u27B0'
                     u'\u2600-\u26FF\u2700-\u27BF]+', 
+# 다시 여기까지 이모티콘
                     re.UNICODE)
         except re.error:
             # Narrow UCS-2 build
+            #\ud800\udd00 - \ud800\uddff > \U00010100-\U000101FF
             #\ud83c\udf00 - \ud83d\ude4f > \U0001F300-\U0001F6FF
             #\ud83d\ude80 - \ud83d\udef3 > \U0001F680-\U0001F6F3
-            #\ud83c\udd70 - \ud83c\ude51 > \U0001F170-\U0001F251
+            #\ud83c\udd40 - \ud83c\ude51 > \U0001F140-\U0001F251
             #\ud83e\udd10 - \ud83e\uddc0 > \U0001F910-\U0001F9C0
-            #\udbb8\udf00 - \udbba\udfff > \U000FE300-\U000FEBFF
+            #\udb82\udc00 - \udb82\udcff > \U000F0800-\U000F08FF
+            #\udbb8\udc00 - \udbbb\udcff > \U000FE000-\U000FECFF
             myre = re.compile(u'('
-                    u'\ud83c[\udc04\udccf\udd70-\ude51\udf00-\udfff]|'
+                    u'\ud800[\udd00-\uddff]|'
+                    u'\ud83c[\udc04\udccf\udd40-\ude51\udf00-\udfff]|'
                     u'\ud83d[\udc00-\udeff]|'
                     u'\ud83e[\udd10-\uddc0]|'
-                    u'\udbb8[\udf00-\udfff]|'
+                    u'[\ud84c\udd03]|'
+                    u'\udb82[\udc00-\udcff]|'
+                    u'\udbb8[\udc00-\udfff]|'
                     u'\udbb9[\udc00-\udfff]|'
                     u'\udbba[\udc00-\udfff]|'
+                    u'\udbbb[\udc00-\udcff]|'
                     u'[\u2026\u24c2]|'
                     u'[\u2702-\u27B0]|'
                     u'[\u2600-\u26FF\u2700-\u27BF]'
