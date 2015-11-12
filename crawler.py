@@ -36,9 +36,6 @@ class Crawler(object):
         myre = None
         try:
             # Wide UCS-4 build
-            # 4byte UTF-8 한자 문제 (3, 4 수준)
-            """ https://www.softel.co.jp/blogs/tech/archives/596 """
-
             myre = re.compile(u'['
                     u'\U0001F004'
                     u'\U0001F0CF'
@@ -46,15 +43,10 @@ class Crawler(object):
                     u'\U0001F140-\U0001F251'
                     u'\U0001F910-\U0001F9C0'
                     u'\U000FE000-\U000FECFF'
-# 여기까지 이모지.
-                    u'\U000F0800-\U000F08FF'
-                    u'\U00023103'
-                    u'\U00010100-\U000101FF'
-# 여기까지 확장형(사실 파이썬에선 확장형 전부 밴해야함)
                     u'\u24c2'
                     u'\u2702-\u27B0'
                     u'\u2600-\u26FF\u2700-\u27BF]+', 
-# 다시 여기까지 이모티콘
+# 여기까지 이모티콘
                     re.UNICODE)
         except re.error:
             # Narrow UCS-2 build
@@ -65,28 +57,16 @@ class Crawler(object):
             #\ud83e\udd10 - \ud83e\uddc0 > \U0001F910-\U0001F9C0
             #\udb82\udc00 - \udb82\udcff > \U000F0800-\U000F08FF
             #\udbb8\udc00 - \udbbb\udcff > \U000FE000-\U000FECFF
+            #IGNORING ALL 4 bytes UTF-8 string to use in MYSQL.
+            """ 일본어에 사용시 참고 문헌 4byte UTF-8 한자 문제 (3, 4 수준) 
+                https://www.softel.co.jp/blogs/tech/archives/596 
+            """
             myre = re.compile(u'('
-                    u'\ud800[\udd00-\uddff]|'
-                    u'\ud83c[\udc04\udccf\udd40-\ude51\udf00-\udfff]|'
-                    u'\ud83d[\udc00-\udeff]|'
-                    u'\ud83e[\udd10-\uddc0]|'
-                    u'[\ud84c\udd03]|'
-                    u'\udb82[\udc00-\udcff]|'
-                    u'\udbb8[\udc00-\udfff]|'
-                    u'\udbb9[\udc00-\udfff]|'
-                    u'\udbba[\udc00-\udfff]|'
-                    u'\udbbb[\udc00-\udcff]|'
+                    u'[\ud800-\udbff][\udc00-\udfff]|'
                     u'[\u2026\u24c2]|'
-                    u'[\u2702-\u27B0]|'
-                    u'[\u2600-\u26FF\u2700-\u27BF]'
+                    u'[\u2600-\u27BF]'
                     ')+',
                     re.UNICODE)
-#            myre = re.compile(u'('
-#                    u'\ud83c[\udde6-\udfff]|'
-#                    u'\ud83d[\ud000-\udeff]|'
-#                    u'[\ud84d\uc000-\uffff\uffff]|'
-#                    u'[\u2600-\u26FF\u2700-\u27BF])+', 
-#                    re.UNICODE)
         text = self.hparser.unescape(text)
         return myre.sub('', text)
 
@@ -108,7 +88,9 @@ class Crawler(object):
                                 .filter(RateLimit.limit > datetime.datetime.now()).first()
         wait_until = None
         if cached_rate_limit is not None:
-            #TODO : process wait until rate limit is broken
+            """ Rate Limit가 일어났을 때의 Handling을 Crawler가 담당하는게 아닌 
+                Crawler의 클래스를 활용하는 외부 클래스가 시행하도록 수정함
+            """
             print "wait to", cached_rate_limit.limit
             wait_until = cached_rate_limit.limit
         else:
@@ -321,6 +303,7 @@ if __name__ == "__main__":
             print e
             return True
     def korean_test():
+        print u"Start checking Korean Character Validate"
         start = u"\uac00"
         end = u"\ud7a3"
         c = UserTimelineCrawler()
@@ -330,7 +313,21 @@ if __name__ == "__main__":
                 continue
             else:
                 print "error!"
-                break
+                return False
+        print u"Start Checking smaller and equal than \U0000FFFF"
+        start = u"\U00000000"
+        end = u"\U0000FFFF"
+        for i in xrange(ord(start), ord(end) + 1):
+            if c.parse_ignore(unichr(i)) == unichr(i):
+                continue
+            elif i == 8230 or i == 9410 or (i >= 9728 and i<= 10175):
+                continue
+            else:
+                print unichr(i), i
+                print "error!"
+                return False
+        print "Finished"
+        return True
     korean_test()
 #    crawling_tweet_search()
 #    print UserTimelineCrawler().get_rate_limit_status()
