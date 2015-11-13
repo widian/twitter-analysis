@@ -70,6 +70,12 @@ class Crawler(object):
         text = self.hparser.unescape(text)
         return myre.sub('', text)
 
+    def trim_newline(self, text):
+        myre = re.compile(u'[\n]+')
+        text = myre.sub(' ', text)
+        text = re.sub(r'http[s]?:\/\/.*[\r\n]*', 'http://t.co/???', text, flags=re.MULTILINE)
+        return re.sub(' +', ' ', text)
+
     def get_rate_limit_status(self):
         try:
             return self.api.GetRateLimitStatus()
@@ -196,9 +202,12 @@ class UserTimelineCrawler(Crawler):
                     exist = sess.query(Tweet).filter(Tweet.id==tweet.id).first()
                     if not exist:
                         # Make Data Row for add to table
+                        text = self.parse_ignore(tweet.text)
+                        if len(text) > 140:
+                            text = self.trim_newline(text)
                         tweet_chunk = Tweet(
                             tweet.id,
-                            self.parse_ignore(tweet.text),
+                            text,
                             tweet.user.id,
                             self.to_datetime(tweet.created_at))
                         if tweet.retweeted_status:

@@ -18,7 +18,7 @@ class Tweet(Base):
         self.created_at = created_at
 
     id = Column(BigInteger, primary_key=True)
-    text = Column(String(140), nullable=False)
+    text = Column(String(141), nullable=False)
     user = Column(BigInteger, nullable=False)
     retweet_owner = Column(BigInteger)
     retweet_origin = Column(BigInteger)
@@ -44,6 +44,27 @@ class User(Base):
     tweet_collected_date = Column(DateTime)
     created_date = Column(DateTime, nullable=False, default=datetime.datetime.now())
     language_type = Column(Integer)
+
+class Celebrity(Base):
+    __tablename__ = 'celebrity'
+
+    def __init__(self, id, celebrity_type):
+        self.id = id
+        self.celebrity_type = celebrity_type
+    #TODO : Make relationship with User. Use User information
+    #TODO : Make relationship with CelebrityType. Use Celebrity Type information
+    id = Column(BigInteger, primary_key=True)
+    celebrity_type = Column(Integer, nullable=False)
+
+class CelebrityType(Base):
+    __tablename__ = 'celebrity_type'
+    
+    def __init__(self, celebrity_type, type_name):
+        self.celebrity_type = celebrity_type
+        self.type_name = type_name
+    celebrity_type = Column(Integer, primary_key=True)
+    type_name = Column(String(30), nullable=False)
+
     
 class Relationship(Base):
     __tablename__ = 'relationship'

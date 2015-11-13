@@ -11,4 +11,10 @@ processor = TwitterKoreanProcessor(stemming=False)
 
 tokens = processor.tokenize(a)
 
-ps.print_tokens(tokens)
+#ps.print_tokens(tokens)
+
+test_link = "asdfasdf asdfzxc http://t.co/aasdfasdf"
+import re
+myre = re.compile(r'http[s]?:\/\/.*[\r\n]*')
+test = myre.sub('http://t.co/???', test_link)
+print test
