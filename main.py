@@ -14,7 +14,7 @@ if __name__ == '__main__':
     GetSleepTime = Api().GetSleepTime
     sess = Session()
     
-    target_id = 174193681
+    target_id = 335204566
 
     result = sess.query(Relationship).filter(Relationship.following == target_id).all()
     for item in result:
