@@ -26,6 +26,24 @@ class Tweet(Base):
     collected_date = Column(DateTime, nullable=False, default=datetime.datetime.now())
     reply_to = Column(BigInteger)
 
+class ErrorTweet(Base):
+    __tablename__ = 'error_tweet'
+
+    def __init__(self, id, text, user, created_at):
+        self.id = id
+        self.text = text
+        self.user = user
+        self.created_at = created_at
+
+    id = Column(BigInteger, primary_key=True)
+    text = Column(String(141), nullable=False)
+    user = Column(BigInteger, nullable=False)
+    retweet_owner = Column(BigInteger)
+    retweet_origin = Column(BigInteger)
+    created_at = Column(DateTime, nullable=False)
+    collected_date = Column(DateTime, nullable=False, default=datetime.datetime.now())
+    reply_to = Column(BigInteger)
+
 class User(Base):
     __tablename__ = 'user'
 

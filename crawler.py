@@ -9,8 +9,9 @@ from twitter import TwitterError
 
 from support.tweet_support import TweetSupport, TweetErrorHandler, ErrorNumbers
 from support.mysql_support import Session
-from support.model import RateLimit, User, Tweet, Relationship
+from support.model import RateLimit, User, Tweet, ErrorTweet, Relationship
 
+from sqlalchemy.exc import DataError
 from sqlalchemy import func, or_
 from sqlalchemy.exc import IntegrityError
 
@@ -58,6 +59,7 @@ class Crawler(object):
             #\udb82\udc00 - \udb82\udcff > \U000F0800-\U000F08FF
             #\udbb8\udc00 - \udbbb\udcff > \U000FE000-\U000FECFF
             #IGNORING ALL 4 bytes UTF-8 string to use in MYSQL.
+            #\ud800\udc00 - \udbff\udfff > \U00010000-\U0010FFFF
             """ 일본어에 사용시 참고 문헌 4byte UTF-8 한자 문제 (3, 4 수준) 
                 https://www.softel.co.jp/blogs/tech/archives/596 
             """
@@ -337,7 +339,55 @@ if __name__ == "__main__":
                 return False
         print "Finished"
         return True
-    korean_test()
+    sess = Session()
+    a = ''
+    for i in xrange(1, 150):
+        a += 'b'
+
+    tweet = Tweet(
+            123,
+            a, 
+            123,
+            datetime.datetime.now() - datetime.timedelta(days=5))
+    tweet2 = Tweet(
+            455,
+            a,
+            455,
+            datetime.datetime.now() - datetime.timedelta(days=5))
+    tweet3 = Tweet(
+            456,
+            'asdf',
+            456,
+            datetime.datetime.now() - datetime.timedelta(days=5))
+    sess.add(tweet)
+#    sess.add(tweet2)
+    sess.add(tweet3) # tweet3 need to add correctly
+    try:
+        sess.commit()
+    except DataError, exc:
+        sess.rollback()
+        #TODO: statement를 활용해서 Reflection으로 rewrap하기 
+        #print exc.statement
+
+        #NOTE: Reference for error case 1
+        # INSERT INTO tweet (id, text, user, retweet_owner, retweet_origin, created_at, collected_date, reply_to) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        # ((123, 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 123, None, None, datetime.datetime(2015, 11, 17, 4, 35, 12, 177278), datetime.datetime(2015, 11, 22, 4, 35, 12, 163143), None), (455, 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 455, None, None, datetime.datetime(2015, 11, 17, 4, 35, 12, 181056), datetime.datetime(2015, 11, 22, 4, 35, 12, 163143), None)) 
+        if isinstance(exc.params[0], tuple):
+            #TODO : error tweet이 2개 이상
+            pass
+        else:
+            #TODO : error tweet이 1개
+            error_tweet = ErrorTweet(
+                    exc.params[0],
+                    exc.params[1],
+                    exc.params[2],
+                    exc.params[5])
+            sess.add(error_tweet)
+            sess.commit()
+        print exc.params, len(exc.params), isinstance(exc.params[0], tuple)
+
+    sess.close()
+#    korean_test()
 #    crawling_tweet_search()
 #    print UserTimelineCrawler().get_rate_limit_status()
 #`    UserFollowerIDs().crawling('Kiatigers')
