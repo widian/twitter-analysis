@@ -190,20 +190,20 @@ class UserTimelineCrawler(Crawler):
                         count=200,
                         max_id=self.minimum_max_id)
                 self.minimum_max_id = None
-
+                if cached_maximum_id is None:
+                    cached_row = sess.query(func.max(Tweet.id)).filter(Tweet.user == user_id).first()
+                    if cached_row[0] is None:
+                        cached_maximum_id = 0
+                    else:
+                        """ cache에서 가지고 있는 maximum id를 새 maximum_id로 지정해줌. 
+                        """
+                        cached_maximum_id = cached_row[0]
                 for tweet in statuses:
-                    if cached_maximum_id is None:
-                        cached_row = sess.query(func.max(Tweet.id)).filter(Tweet.user == user_id).first()
-                        if cached_row[0] is None:
-                            cached_maximum_id = 0
-                        else:
-                            """ cache에서 가지고 있는 minimum id를 새 minimum_max_id로 지정해줌. 
-                            """
-                            cached_maximum_id = cached_row[0]
                     self.minimum_max_id = tweet.id
-                    exist = sess.query(Tweet).filter(Tweet.id==tweet.id).first()
-                    if not exist:
+#                    exist = sess.query(Tweet).filter(Tweet.id==tweet.id).first()
+#                    if not exist:
                         # Make Data Row for add to table
+                    if cached_maximum_id < tweet.id:
                         text = self.parse_ignore(tweet.text)
                         if len(text) > 140:
                             text = self.trim_newline(text)
@@ -218,13 +218,12 @@ class UserTimelineCrawler(Crawler):
                         if tweet.in_reply_to_user_id:
                             tweet_chunk.reply_to = tweet.in_reply_to_user_id
                         sess.add(tweet_chunk)
-
                     """ print tweet search result (Unnecessary)
                     """
                     tweet_text = ('%s %s @%s tweeted: %s' % (tweet.id, tweet.created_at, tweet.GetUser().screen_name, tweet.text))
                     print tweet_text 
                 if self.minimum_max_id is None:
-                    """ No result with self.api.GetUSerTimeline
+                    """ No result with self.api.GetUserTimeline
                     """
                     break
                 else:
@@ -236,7 +235,28 @@ class UserTimelineCrawler(Crawler):
                     """ 최종에는 - 1
                     """
                     self.minimum_max_id -= 1
-            sess.commit()
+            try:
+                sess.commit()
+            except DataError, exc:
+                sess.rollback()
+                count = 0
+                for item in exc.params:
+                    if len(item[1]) > 140:
+                        error_tweet = ErrorTweet(
+                                item[0],
+                                item[1],
+                                item[2],
+                                item[5])
+                        sess.add(error_tweet)
+                    else:
+                        tweet = Tweet(
+                                item[0],
+                                item[1],
+                                item[2],
+                                item[5])
+                        sess.add(tweet)
+                    count += 1
+                sess.commit()
             target_user = sess.query(User).filter(User.id == user_id).first()
             target_user.tweet_collected_date = datetime.datetime.now()
             sess.commit()
@@ -339,54 +359,75 @@ if __name__ == "__main__":
                 return False
         print "Finished"
         return True
-    sess = Session()
-    a = ''
-    for i in xrange(1, 150):
-        a += 'b'
+    def timeline_crawling_too_long_tweet_handler():
+        sess = Session()
+        a = ''
+        for i in xrange(1, 150):
+            a += 'b'
 
-    tweet = Tweet(
-            123,
-            a, 
-            123,
-            datetime.datetime.now() - datetime.timedelta(days=5))
-    tweet2 = Tweet(
-            455,
-            a,
-            455,
-            datetime.datetime.now() - datetime.timedelta(days=5))
-    tweet3 = Tweet(
-            456,
-            'asdf',
-            456,
-            datetime.datetime.now() - datetime.timedelta(days=5))
-    sess.add(tweet)
-#    sess.add(tweet2)
-    sess.add(tweet3) # tweet3 need to add correctly
-    try:
-        sess.commit()
-    except DataError, exc:
-        sess.rollback()
-        #TODO: statement를 활용해서 Reflection으로 rewrap하기 
-        #print exc.statement
-
-        #NOTE: Reference for error case 1
-        # INSERT INTO tweet (id, text, user, retweet_owner, retweet_origin, created_at, collected_date, reply_to) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        # ((123, 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 123, None, None, datetime.datetime(2015, 11, 17, 4, 35, 12, 177278), datetime.datetime(2015, 11, 22, 4, 35, 12, 163143), None), (455, 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 455, None, None, datetime.datetime(2015, 11, 17, 4, 35, 12, 181056), datetime.datetime(2015, 11, 22, 4, 35, 12, 163143), None)) 
-        if isinstance(exc.params[0], tuple):
-            #TODO : error tweet이 2개 이상
-            pass
-        else:
-            #TODO : error tweet이 1개
-            error_tweet = ErrorTweet(
-                    exc.params[0],
-                    exc.params[1],
-                    exc.params[2],
-                    exc.params[5])
-            sess.add(error_tweet)
+        tweet = Tweet(
+                123,
+                a, 
+                123,
+                datetime.datetime.now() - datetime.timedelta(days=5))
+        tweet2 = Tweet(
+                455,
+                a,
+                455,
+                datetime.datetime.now() - datetime.timedelta(days=5))
+        tweet3 = Tweet(
+                456,
+                'asdf',
+                456,
+                datetime.datetime.now() - datetime.timedelta(days=5))
+        sess.add(tweet)
+    #    sess.add(tweet2)
+        sess.add(tweet3) # tweet3 need to add correctly
+        try:
             sess.commit()
-        print exc.params, len(exc.params), isinstance(exc.params[0], tuple)
+        except DataError, exc:
+            sess.rollback()
+            #TODO: statement를 활용해서 Reflection으로 rewrap하기 
+            #print exc.statement
 
-    sess.close()
+            #NOTE : error tweet for two or more error twits
+            # INSERT INTO tweet (id, text, user, retweet_owner, retweet_origin, created_at, collected_date, reply_to) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            # ((123, 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 123, None, None, datetime.datetime(2015, 11, 17, 4, 35, 12, 177278), datetime.datetime(2015, 11, 22, 4, 35, 12, 163143), None), (455, 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 455, None, None, datetime.datetime(2015, 11, 17, 4, 35, 12, 181056), datetime.datetime(2015, 11, 22, 4, 35, 12, 163143), None)) 
+            if isinstance(exc.params[0], tuple):
+                #TODO : error tweet이 2개 이상
+                count = 0
+                for item in exc.params:
+                    print len(item[1])
+                    if len(item[1]) > 140:
+                        error_tweet = ErrorTweet(
+                                item[0],
+                                item[1],
+                                item[2],
+                                item[5])
+                        sess.add(error_tweet)
+                    else:
+                        tweet = Tweet(
+                                item[0],
+                                item[1],
+                                item[2],
+                                item[5])
+                        sess.add(tweet)
+                    count += 1
+                sess.commit()
+                print "length : ", count
+            else:
+                #TODO : error tweet이 1개
+                error_tweet = ErrorTweet(
+                        exc.params[0],
+                        exc.params[1],
+                        exc.params[2],
+                        exc.params[5])
+                sess.add(error_tweet)
+                sess.commit()
+            print dir(exc), exc.message, exc.statement, exc.params, len(exc.params), isinstance(exc.params[0], tuple)
+
+        sess.close()
+    timeline_crawling_too_long_tweet_handler()
 #    korean_test()
 #    crawling_tweet_search()
 #    print UserTimelineCrawler().get_rate_limit_status()

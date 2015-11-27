@@ -43,6 +43,7 @@ class ErrorTweet(Base):
     created_at = Column(DateTime, nullable=False)
     collected_date = Column(DateTime, nullable=False, default=datetime.datetime.now())
     reply_to = Column(BigInteger)
+    search_id = Column(Integer, primary_key=True)
 
 class User(Base):
     __tablename__ = 'user'

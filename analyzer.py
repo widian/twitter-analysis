@@ -8,13 +8,13 @@ from collections import OrderedDict
 # NLP Processors
 from twkorean import TwitterKoreanProcessor
 
-from support.mysql_support import Session
+from support.mysql_support import Session, AnalysisSession
 from support.model import Tweet, User
 from sqlalchemy import desc
 
 
 def analyze(user_id):
-    sess = Session()
+    sess = AnalysisSession()
     ps = PrintString()
     processor = TwitterKoreanProcessor(stemming=False)
 
@@ -41,7 +41,7 @@ def analyze(user_id):
     return noun_usage_dict, noun_counter, tweet_tokens
 
 def user_analyze():
-    sess = Session()
+    sess = AnalysisSession()
     ps = PrintString()
 
     processor = TwitterKoreanProcessor(stemming=False)
@@ -144,8 +144,8 @@ if __name__ == '__main__':
 #    ps = PrintString()
 #    ps.print_tokens(tokens)
 #
-#    user_analyze()
+    user_analyze()
 #
-    korean_analyze(14206146)
+#    korean_analyze(14206146)
 
 
