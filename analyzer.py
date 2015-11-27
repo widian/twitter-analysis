@@ -83,7 +83,7 @@ def user_analyze():
                 print(("%d is Korean User") % user_id)
                 user.language_type = 1
         #print(tweet_counter, pos_set)
-    sess.commit()
+        sess.commit()
     sess.close()
     return True
 

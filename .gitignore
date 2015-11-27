@@ -2,3 +2,4 @@
 *.swp
 config.py
 reference.py
+bot_analyzer.py

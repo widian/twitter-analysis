@@ -231,7 +231,8 @@ class UserTimelineCrawler(Crawler):
                     """
                     if cached_maximum_id > self.minimum_max_id:
                         cached_row = sess.query(func.min(Tweet.id)).filter(Tweet.user == user_id).first()
-                        self.minimum_max_id = cached_row[0]
+                        if cached_row[0] < self.minimum_max_id:
+                            self.minimum_max_id = cached_row[0]
                     """ 최종에는 - 1
                     """
                     self.minimum_max_id -= 1
