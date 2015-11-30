@@ -25,7 +25,7 @@ class Crawler(object):
         self.api = self.ts.get_api()
         self.hparser = HTMLParser()
 
-    def crawling(self, user_id):
+    def crawling(self, user_id, authorized=User.AUTHORIZED, **kwargs):
         #TODO : NEED TO RAISE NOT IMPLEMENTED ERROR
         print "NOT IMPLEMENTED CRAWLING FUNCTION"
         return False
@@ -89,7 +89,8 @@ class Crawler(object):
 
     def rate_limit_handler(self, case, 
             process_name=None, 
-            minimum_max_id=None):
+            minimum_max_id=None,
+            **kwargs):
         sess = Session()
         cached_rate_limit = sess.query(RateLimit) \
                                 .filter(RateLimit.process_name == process_name) \
@@ -139,7 +140,7 @@ class Crawler(object):
                     crawling 함수에는 user_id를 전달함
                 """
                 sess.close()
-                return func(self, exist.id)
+                return func(self, exist.id, authorized=exist.authorized)
             else:
                 try:
                     """ Twitter로부터 유저정보를 받은 뒤 DB에 저장.
@@ -177,9 +178,12 @@ class UserTimelineCrawler(Crawler):
         self.process_name = '/statuses/user_timeline'
     
     @Crawler.user_info
-    def crawling(self, user_id):
+    def crawling(self, user_id, authorized, **kwargs):
         # sess => session
         sess = None
+        if authorized == User.UNAUTHORIZED:
+            print "Cannot Crawling Unauthorized User : ", user_id
+            return True
         try:
             sess = Session()
             cached_maximum_id = None
@@ -239,6 +243,10 @@ class UserTimelineCrawler(Crawler):
             try:
                 sess.commit()
             except DataError, exc:
+                """ Mysql Error Handling for
+                    트윗이 이모티콘, 조합형 한글, 확장형 한자 등으로 인해
+                    UCS-2 python환경에서 140자가 넘은 것으로 인식될 때 따로 저장시키는 용도
+                """
                 sess.rollback()
                 count = 0
                 for item in exc.params:
@@ -266,11 +274,26 @@ class UserTimelineCrawler(Crawler):
         except TwitterError as e:
             t = TweetErrorHandler(e)
             t.add_handler(ErrorNumbers.RATE_LIMIT_ERROR, self.rate_limit_handler)
-            result = t.invoke(process_name=self.process_name, minimum_max_id=self.minimum_max_id)
+            t.add_handler(ErrorNumbers.NOT_AUTHORIZED, self.not_authorized_handler)
+            result = t.invoke(process_name=self.process_name, minimum_max_id=self.minimum_max_id, user_id=user_id)
             if sess is not None:
                 sess.commit()
                 sess.close()
             return result 
+
+    def not_authorized_handler(self, case,
+            user_id=None, **kwargs):
+        if user_id is None:
+            """ user_id must be required
+            """
+            print "User ID Require!"
+            return None
+        sess = Session()
+        target_user = sess.query(User).filter(User.id == user_id).first()
+        target_user.authorized = User.UNAUTHORIZED
+        sess.commit()
+        sess.close()
+
 
 class UserFollowerIDs(Crawler):
     def __init__(self):
@@ -278,7 +301,7 @@ class UserFollowerIDs(Crawler):
         self.process_name = '/followers/ids'
 
     @Crawler.user_info
-    def crawling(self, user_id):
+    def crawling(self, user_id, **kwargs):
         sess = None
         try:
             ts = TweetSupport()

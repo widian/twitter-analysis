@@ -19,7 +19,7 @@ class Tweet(Base):
 
     id = Column(BigInteger, primary_key=True)
     text = Column(String(141), nullable=False)
-    user = Column(BigInteger, nullable=False)
+    user = Column(BigInteger, nullable=False, index=True)
     retweet_owner = Column(BigInteger)
     retweet_origin = Column(BigInteger)
     created_at = Column(DateTime, nullable=False)
@@ -48,6 +48,9 @@ class ErrorTweet(Base):
 class User(Base):
     __tablename__ = 'user'
 
+    AUTHORIZED = 1
+    UNAUTHORIZED = 0
+
     def __init__(self, id, name, screen_name, statuses_count, follower_count):
         self.id = id
         self.name = name
@@ -63,6 +66,7 @@ class User(Base):
     tweet_collected_date = Column(DateTime)
     created_date = Column(DateTime, nullable=False, default=datetime.datetime.now())
     language_type = Column(Integer)
+    authorized = Column(Integer, nullable=False, default=AUTHORIZED)
 
 class Celebrity(Base):
     __tablename__ = 'celebrity'

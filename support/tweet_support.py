@@ -15,6 +15,7 @@ class TweetSupport(object):
 
 class TweetErrorNumber(object):
     RATE_LIMIT_ERROR = 88
+    NOT_AUTHORIZED = u'Not authorized.'
 
 class TweetErrorHandler(object):
     error_container = None
@@ -43,8 +44,13 @@ class TweetErrorHandler(object):
         result = dict()
         for case in self.error_container:
             if not isinstance(case, dict):
-                print case 
-                continue
+                if self.error_container in self.error_handler:
+                    new_case = self.error_container
+                    result[new_case] = self.error_handler[new_case](new_case, **kwargs)
+                    break
+                else:
+                    print case, 
+                    continue
             if case['code'] in self.error_handler:
                 result[case['code']] = self.error_handler[case['code']](case, **kwargs)
             else:

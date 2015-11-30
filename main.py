@@ -27,7 +27,7 @@ if __name__ == '__main__':
                     time.sleep( result[ErrorNumbers.RATE_LIMIT_ERROR] + 10)
                     result = timeline_crawler.crawling(user_id=item.follower)
                 else:
-                    print " UNKNOWN ERROR "
+                    print "UNKNOWN ERROR "
                     break
         else:
             print 'pass ', user.screen_name
