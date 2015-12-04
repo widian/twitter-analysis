@@ -126,3 +126,46 @@ class LanguageType(Base):
 
     language_type = Column(Integer, primary_key=True, nullable=False)
     name = Column(String(45), nullable=False)
+
+class TweetType(Base):
+    __tablename__ = 'tweet_type'
+
+    def __init__(self, 
+            start_time=None, end_time=None, 
+            follower_of=None, 
+            contain_retweet=1, contain_english=1, contain_username_mentioned=1,
+            contain_linked_tweet=1, least_tweet_per_user=0):
+        if start_time is not None:
+            self.start_time = start_time
+        if end_time is not None:
+            self.end_time = end_time
+        if follower_of is not None:
+            self.follower_of = follower_of
+
+        self.contain_linked_tweet = contain_linked_tweet
+        self.contain_username_mentioned = contain_username_mentioned
+        self.contain_english = contain_english
+        self.contain_retweet = contain_retweet
+        self.least_tweet_per_user = least_tweet_per_user
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    created_time = Column(DateTime, nullable=False, default=datetime.datetime.now())
+
+    start_time = Column(DateTime)
+    end_time = Column(DateTime, nullable=False, default=datetime.datetime.now())
+
+    follower_of = Column(BigInteger)
+    contain_retweet = Column(Integer, default=1)
+    contain_english = Column(Integer, default=1)
+    contain_username_mentioned = Column(Integer, default=1)
+    contain_linked_tweet = Column(Integer, default=1)
+    least_tweet_per_user = Column(Integer, default=0)
+
+class TweetSearchLog(Base):
+    __tablename__ = 'tweet_search_log'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    tweet_id = Column(BigInteger, nullable=False)
+    tweet_type = Column(Integer, nullable=False)
+
+    collected_time = Column(DateTime, nullable=False, default=datetime.datetime.now())

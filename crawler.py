@@ -178,7 +178,7 @@ class UserTimelineCrawler(Crawler):
         self.process_name = '/statuses/user_timeline'
     
     @Crawler.user_info
-    def crawling(self, user_id, authorized, **kwargs):
+    def crawling(self, user_id, authorized=User.AUTHORIZED, **kwargs):
         # sess => session
         sess = None
         if authorized == User.UNAUTHORIZED:
@@ -225,7 +225,7 @@ class UserTimelineCrawler(Crawler):
                     """ print tweet search result (Unnecessary)
                     """
                     tweet_text = ('%s %s @%s tweeted: %s' % (tweet.id, tweet.created_at, tweet.GetUser().screen_name, tweet.text))
-                    print tweet_text 
+                    #print tweet_text 
                 if self.minimum_max_id is None:
                     """ No result with self.api.GetUserTimeline
                     """
@@ -451,8 +451,9 @@ if __name__ == "__main__":
             print dir(exc), exc.message, exc.statement, exc.params, len(exc.params), isinstance(exc.params[0], tuple)
 
         sess.close()
-    timeline_crawling_too_long_tweet_handler()
+#    timeline_crawling_too_long_tweet_handler()
 #    korean_test()
 #    crawling_tweet_search()
 #    print UserTimelineCrawler().get_rate_limit_status()
-#`    UserFollowerIDs().crawling('Kiatigers')
+#    UserFollowerIDs().crawling('Kiatigers')
+    UserTimelineCrawler().crawling('deresute_border')

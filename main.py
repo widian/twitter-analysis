@@ -21,6 +21,7 @@ if __name__ == '__main__':
         user = sess.query(User).filter(User.id  == item.follower).first()
         if user is None or user.tweet_collected_date is None or user.tweet_collected_date < datetime.datetime.now() - datetime.timedelta(days=14):
             result = timeline_crawler.crawling(user_id=item.follower)
+            print result, item.follower
             while result is not True:
                 if ErrorNumbers.RATE_LIMIT_ERROR in result:
                     print 'wait %d seconds' % (result[ErrorNumbers.RATE_LIMIT_ERROR] + 10)
