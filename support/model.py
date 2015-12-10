@@ -8,6 +8,24 @@ from sqlalchemy import UniqueConstraint
 
 Base = declarative_base()
 
+class TweetBase(object):
+    __tablename__ = 'tweet'
+
+    def __init__(self, id, text, user, created_at):
+        self.id = id
+        self.text = text
+        self.user = user
+        self.created_at = created_at
+
+    id = Column(BigInteger, primary_key=True)
+    text = Column(String(141), nullable=False)
+    user = Column(BigInteger, nullable=False, index=True)
+    retweet_owner = Column(BigInteger)
+    retweet_origin = Column(BigInteger)
+    created_at = Column(DateTime, nullable=False)
+    collected_date = Column(DateTime, nullable=False, default=datetime.datetime.now())
+    reply_to = Column(BigInteger)
+
 class Tweet(Base):
     __tablename__ = 'tweet'
 
@@ -148,6 +166,8 @@ class TweetType(Base):
         self.contain_retweet = contain_retweet
         self.least_tweet_per_user = least_tweet_per_user
 
+    #TODO : Add more column for 두 어카운트를 동시에 팔로잉하는 계정의 트윗
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     created_time = Column(DateTime, nullable=False, default=datetime.datetime.now())
 
@@ -169,3 +189,25 @@ class TweetSearchLog(Base):
     tweet_type = Column(Integer, nullable=False)
 
     collected_time = Column(DateTime, nullable=False, default=datetime.datetime.now())
+
+class Tweet_335204566_1(TweetBase, Base):
+    __tablename__ = 'tweet_335204566_1'
+
+    #Use like a memo
+    MAXIMUM_created_at = '2011-07-28 16:38:12'
+
+class Tweet_335204566_2(TweetBase, Base):
+    __tablename__ = 'tweet_335204566_2'
+
+class Tweet_335204566_3(TweetBase, Base):
+    __tablename__ = 'tweet_335204566_3'
+
+class Tweet_335204566_4(TweetBase, Base):
+    __tablename__ = 'tweet_335204566_4'
+
+#class Tweet_335204566_2(Tweet):
+#    __tablename__ = 'tweet_335204566_2'
+#
+#Tweet_335204566 = list()
+#Tweet_335204566.append(Tweet_335204566_1)
+#Tweet_335204566.append(Tweet_335204566_2)

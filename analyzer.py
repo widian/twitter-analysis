@@ -127,20 +127,34 @@ def tweet_collect(analysis_type=None):
         sess.add(tweet_type_data)
         sess.commit()
         type_result = tweet_type_query.first()
+
+
+        #Type의 번호를 type_result로부터 얻을 수 있음.
+
     sess.close()
     return True
 
 class AnalysisType(object):
-    contain_linked_tweet = 1
+    """ contained_linked_tweet : 0 - 링크가 포함된 트윗을 제외, 1 - 링크가 포함된 트윗을 검색, 2 - 링크가 포함된 트윗만 검색
+        contain_english : 0 - 외국어권 유저로 추정되는 유저의 트윗을 제외, 1 - 외국어권 유저의 트윗을 검색, 2 - 외국어권 유저의 트윗만 검색
+        contain_username_mentioned : 0 - 특정 유저에게 답변한 트윗을 제외, 1 - 특정 유저에게 답변한 트윗을 포함, 2 - 특정 유저에게 답변한 트윗만 검색
+        contain_retweet : 0 - 리트윗을 제외, 1 - 리트윗한 트윗을 검색, 2 - 리트윗한 트윗만 검색
+        least_tweet_per_user : 특정 유저가 least_tweet_per_user만큼의 트윗을 하지 않았다면 검색하지 않음.
+
+        follower_of : follower_of의 follower인 트윗만 검색
+        since : since부터의 트윗만 검색
+        until : until까지의 트윗만 검색
+    """
+    contain_linked_tweet = 1 
     contain_english= 1
     contain_username_mentioned = 1
     contain_retweet = 1
     least_tweet_per_user = 0
 
     follower_of = None
-    start_time = None
-    end_time = None
-    def __init__(self, start_time=None, end_time=None, follower_of=None, 
+    since = None
+    until = None
+    def __init__(self, since=None, until=None, follower_of=None, 
             contain_linked_tweet=1, contain_username_mentioned=1, contain_english=1,
             contain_retweet=1, least_tweet_per_user=0):
         self.contain_retweet = contain_retweet
@@ -148,22 +162,32 @@ class AnalysisType(object):
         self.contain_username_mentioned = contain_username_mentioned
         self.contain_english = contain_english
         self.least_tweet_per_user = least_tweet_per_user
-        self.start_time = start_time
-        self.end_time = end_time
+        self.since = since
+        self.until = until
         self.follower_of = follower_of
 
-    def make_tweet_query(self, session):
+    def get_tweet_list(self, target_tweet_table, session):
         #TODO : FILL IT!
-        query = session.query(Tweet)
-        if self.start_time is not None:
-            query = query.filter(Tweet.created_at > self.start_time)
-        if self.end_time is not None:
-            query = query.filter(Tweet.created_at < self.end_time)
+        query = session.query(target_tweet_table)
+        if self.since is not None:
+            query = query.filter(target_tweet_table.created_at > self.since)
+        if self.until is not None:
+            query = query.filter(target_tweet_table.created_at < self.until)
+        if self.contain_retweet == 0:
+            query = query.filter(target_tweet_table.retweet_owner == None)
+        elif self.contain_retweet == 2:
+            query = query.filter(target_tweet_table.retweet_owner != None)
+        if self.contain_username_mentioned == 0:
+            query = query.filter(target_tweet_table.reply_to == None)
+        elif self.contain_username_mentioned == 2:
+            query = query.filter(target_tweet_table.reply_to != None)
+        pre_tweets = query.all()
+        return pre_tweets
 
     def make_query(self, session):
         query = session.query(TweetType)
-        query = query.filter(TweetType.start_time == self.start_time)
-        query = query.filter(TweetType.end_time == self.end_time)
+        query = query.filter(TweetType.since == self.since)
+        query = query.filter(TweetType.until == self.until)
         query = query.filter(TweetType.follower_of == self.follower_of)
         query = query.filter(TweetType.contain_retweet == self.contain_retweet)\
                                            .filter(TweetType.contain_english == self.contain_english)\
@@ -174,7 +198,7 @@ class AnalysisType(object):
 
     def make_type_data(self):
         return TweetType(
-                start_time=self.start_time, end_time=self.end_time, follower_of=self.follower_of,
+                since=self.since, until=self.until, follower_of=self.follower_of,
                 contain_retweet=self.contain_retweet, contain_english=self.contain_english,
                 contain_username_mentioned=self.contain_username_mentioned, contain_linked_tweet=self.contain_linked_tweet,
                 least_tweet_per_user=self.least_tweet_per_user)
@@ -221,14 +245,30 @@ if __name__ == '__main__':
 #
 #    korean_analyze(14206146)
 
-    tweet_collect(AnalysisType( start_time=datetime.date(2015, 10, 1), 
-                      end_time=datetime.date(2015, 10, 10), 
+#    tweet_collect(AnalysisType( since=datetime.date(2015, 10, 1), 
+#                      until=datetime.date(2015, 10, 10), 
+#                      follower_of=335204566,
+#                      contain_retweet=0,
+#                      contain_english=0,
+#                      contain_username_mentioned=0,
+#                      contain_linked_tweet=0,
+#                      least_tweet_per_user=200)
+#                 )
+    from support.model import Tweet_335204566_1
+    sess = Session()
+    tweets = AnalysisType( since=datetime.date(2010, 10, 1), 
+                      until=datetime.date(2010, 10, 10), 
                       follower_of=335204566,
                       contain_retweet=0,
                       contain_english=0,
                       contain_username_mentioned=0,
                       contain_linked_tweet=0,
-                      least_tweet_per_user=200)
-                 )
+                      least_tweet_per_user=200).get_tweet_list(Tweet_335204566_1, sess)
+    for tweet in tweets:
+        print(tweet.text)
+    print(len(tweets))
+    sess.close()
+    
+                 
 
 
