@@ -11,11 +11,22 @@ Base = declarative_base()
 class TweetBase(object):
     __tablename__ = 'tweet'
 
+    _MAXIMUM_created_at = None
+    _MAXIMUM_id = None
+
     def __init__(self, id, text, user, created_at):
         self.id = id
         self.text = text
         self.user = user
         self.created_at = created_at
+
+    @classmethod
+    def get_maximum_id(self):
+        return self._MAXIMUM_id
+
+    @classmethod
+    def get_maximum_created_at(self):
+        return datetime.datetime.strptime(self._MAXIMUM_created_at, '%Y-%m-%d %H:%M:%S')
 
     id = Column(BigInteger, primary_key=True)
     text = Column(String(141), nullable=False)
@@ -194,20 +205,64 @@ class Tweet_335204566_1(TweetBase, Base):
     __tablename__ = 'tweet_335204566_1'
 
     #Use like a memo
-    MAXIMUM_created_at = '2011-07-28 16:38:12'
+    _MAXIMUM_id = 96620479451906048
+    _MAXIMUM_created_at = '2011-07-28 16:38:12'
 
 class Tweet_335204566_2(TweetBase, Base):
     __tablename__ = 'tweet_335204566_2'
 
+    _MAXIMUM_id = 187823936057262080
+    _MAXIMUM_created_at = '2012-04-05 08:48:10'
+
 class Tweet_335204566_3(TweetBase, Base):
     __tablename__ = 'tweet_335204566_3'
 
+    _MAXIMUM_id = 275429499905118208
+    _MAXIMUM_created_at = '2012-12-03 02:41:24'
+
 class Tweet_335204566_4(TweetBase, Base):
     __tablename__ = 'tweet_335204566_4'
+    _MAXIMUM_id = 367339079869808640
+    _MAXIMUM_created_at = '2013-08-13 17:37:16'
 
-#class Tweet_335204566_2(Tweet):
-#    __tablename__ = 'tweet_335204566_2'
-#
-#Tweet_335204566 = list()
-#Tweet_335204566.append(Tweet_335204566_1)
-#Tweet_335204566.append(Tweet_335204566_2)
+class Tweet_335204566_5(TweetBase, Base):
+    __tablename__ = 'tweet_335204566_5'
+
+    _MAXIMUM_id = 471998072784834561
+    _MAXIMUM_created_at = '2014-05-29 12:54:44'
+
+class Tweet_335204566_6(TweetBase, Base):
+    __tablename__ = 'tweet_335204566_6'
+
+    _MAXIMUM_id = 556243889950957568
+    _MAXIMUM_created_at = '2015-01-17 00:17:32'
+
+class Tweet_335204566_7(TweetBase, Base):
+    __tablename__ = 'tweet_335204566_7'
+    _MAXIMUM_id = 621310510785409024
+    _MAXIMUM_created_at = '2015-07-15 13:29:03'
+
+class Tweet_335204566_8(TweetBase, Base):
+    __tablename__ = 'tweet_335204566_8'
+    _MAXIMUM_id = 658478158061039616
+    _MAXIMUM_created_at = '2015-10-26 03:00:01'
+
+class Tweet_335204566_9(TweetBase, Base):
+    __tablename__ = 'tweet_335204566_9'
+    _MAXIMUM_id = 673675443527020544
+    _MAXIMUM_created_at = '2015-12-07 01:28:36'
+
+Tweet_335204566 = list()
+Tweet_335204566.append(Tweet_335204566_1)
+Tweet_335204566.append(Tweet_335204566_2)
+Tweet_335204566.append(Tweet_335204566_3)
+Tweet_335204566.append(Tweet_335204566_4)
+Tweet_335204566.append(Tweet_335204566_5)
+Tweet_335204566.append(Tweet_335204566_6)
+Tweet_335204566.append(Tweet_335204566_7)
+Tweet_335204566.append(Tweet_335204566_8)
+Tweet_335204566.append(Tweet_335204566_9)
+
+if __name__ == '__main__':
+    datetime.datetime.strptime("2015-07-15 13:29:03", '%Y-%m-%d %H:%M:%S')
+

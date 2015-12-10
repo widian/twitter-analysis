@@ -182,7 +182,10 @@ class AnalysisType(object):
         elif self.contain_username_mentioned == 2:
             query = query.filter(target_tweet_table.reply_to != None)
         pre_tweets = query.all()
-        return pre_tweets
+        result = list()
+        for tweet in pre_tweets:
+            result.append(tweet)
+        return result 
 
     def make_query(self, session):
         query = session.query(TweetType)
@@ -254,7 +257,7 @@ if __name__ == '__main__':
 #                      contain_linked_tweet=0,
 #                      least_tweet_per_user=200)
 #                 )
-    from support.model import Tweet_335204566_1
+    from support.model import Tweet_335204566
     sess = Session()
     tweets = AnalysisType( since=datetime.date(2010, 10, 1), 
                       until=datetime.date(2010, 10, 10), 
@@ -263,7 +266,7 @@ if __name__ == '__main__':
                       contain_english=0,
                       contain_username_mentioned=0,
                       contain_linked_tweet=0,
-                      least_tweet_per_user=200).get_tweet_list(Tweet_335204566_1, sess)
+                      least_tweet_per_user=200).get_tweet_list(Tweet_335204566[0], sess)
     for tweet in tweets:
         print(tweet.text)
     print(len(tweets))
