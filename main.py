@@ -20,14 +20,14 @@ if __name__ == '__main__':
     result = sess.query(Relationship).filter(Relationship.following == target_id).all()
     for item in result:
         user = sess.query(User).filter(User.id  == item.follower).first()
-        if user is None or user.tweet_collected_date is None or user.tweet_collected_date < datetime.datetime.now() - datetime.timedelta(days=14):
-            result = timeline_crawler.crawling(user_id=item.follower)
+        if user is None or user.tweet_collected_date is None:
+            result = timeline_crawler.crawling(user_id=item.follower, since=datetime.date(year=2015, month=7, day=15))
             print result, item.follower
             while result is not True:
                 if ErrorNumbers.RATE_LIMIT_ERROR in result:
                     print 'wait %d seconds' % (result[ErrorNumbers.RATE_LIMIT_ERROR] + 10)
                     time.sleep( result[ErrorNumbers.RATE_LIMIT_ERROR] + 10)
-                    result = timeline_crawler.crawling(user_id=item.follower)
+                    result = timeline_crawler.crawling(user_id=item.follower, since=datetime.date(year=2015, month=7, day=15))
                 else:
                     print "UNKNOWN ERROR "
                     break

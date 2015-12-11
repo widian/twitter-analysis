@@ -128,7 +128,8 @@ class Crawler(object):
         """ 특정 crawling이 어떤 user대상이라면, 미리 user정보를 받아오기 위한
             decorator함수. 
         """
-        def get_user_info(self, screen_name=None, user_id=None):
+        def get_user_info(self, screen_name=None, user_id=None, **kwargs):
+            #TODO : 만약 kwargs에 since가 있다면, 유저의 가장 최근 status 정보를 받아서 func에 정보를 전달하기
             process_name = "/users/show/: id"
             sess = Session()
             """ 만약 해당 유저정보가 이미 저장되어있다면
@@ -140,7 +141,7 @@ class Crawler(object):
                     crawling 함수에는 user_id를 전달함
                 """
                 sess.close()
-                return func(self, exist.id, authorized=exist.authorized)
+                return func(self, exist.id, authorized=exist.authorized, **kwargs)
             else:
                 try:
                     """ Twitter로부터 유저정보를 받은 뒤 DB에 저장.
@@ -157,7 +158,7 @@ class Crawler(object):
                     sess.add(user_chunk)
                     sess.commit()
                     sess.close()
-                    return func(self, user.id)
+                    return func(self, user.id, **kwargs)
                 except TwitterError as e:
                     """ Error처리는 다른 함수와 동일
                     """
@@ -178,7 +179,7 @@ class UserTimelineCrawler(Crawler):
         self.process_name = '/statuses/user_timeline'
     
     @Crawler.user_info
-    def crawling(self, user_id, authorized=User.AUTHORIZED, **kwargs):
+    def crawling(self, user_id, authorized=User.AUTHORIZED, since=datetime.date(year=1970, month=1, day=1), **kwargs):
         # sess => session
         sess = None
         if authorized == User.UNAUTHORIZED:
@@ -202,6 +203,7 @@ class UserTimelineCrawler(Crawler):
                         """ cache에서 가지고 있는 maximum id를 새 maximum_id로 지정해줌. 
                         """
                         cached_maximum_id = cached_row[0]
+                passed_since = False
                 for tweet in statuses:
                     self.minimum_max_id = tweet.id
 #                    exist = sess.query(Tweet).filter(Tweet.id==tweet.id).first()
@@ -224,8 +226,13 @@ class UserTimelineCrawler(Crawler):
                         sess.add(tweet_chunk)
                     """ print tweet search result (Unnecessary)
                     """
+                    if self.to_datetime(tweet.created_at) < datetime.datetime.combine(since, datetime.datetime.min.time()):
+                        passed_since = True
+                        break
                     tweet_text = ('%s %s @%s tweeted: %s' % (tweet.id, tweet.created_at, tweet.GetUser().screen_name, tweet.text))
-                    #print tweet_text 
+                if passed_since:
+                    break
+
                 if self.minimum_max_id is None:
                     """ No result with self.api.GetUserTimeline
                     """

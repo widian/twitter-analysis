@@ -21,13 +21,20 @@ class TweetBase(object):
         self.created_at = created_at
 
     @classmethod
-    def get_maximum_id(self):
-        return self._MAXIMUM_id
+    def get_maximum_id(cls):
+        return cls._MAXIMUM_id
 
     @classmethod
-    def get_maximum_created_at(self):
-        return datetime.datetime.strptime(self._MAXIMUM_created_at, '%Y-%m-%d %H:%M:%S')
+    def get_minimum_id(cls):
+        return cls._MINIMUM_id
 
+    @classmethod
+    def get_maximum_created_at(cls):
+        return datetime.datetime.strptime(cls._MAXIMUM_created_at, '%Y-%m-%d %H:%M:%S')
+
+    @classmethod
+    def get_minimum_created_at(cls):
+        return datetime.datetime.strptime(cls._MINIMUM_created_at, '%Y-%m-%d %H:%M:%S')
     id = Column(BigInteger, primary_key=True)
     text = Column(String(141), nullable=False)
     user = Column(BigInteger, nullable=False, index=True)
@@ -205,50 +212,72 @@ class Tweet_335204566_1(TweetBase, Base):
     __tablename__ = 'tweet_335204566_1'
 
     #Use like a memo
+    _MINIMUM_id = 14251891
+    _MINIMUM_created_at = '2007-03-28 13:21:41'
     _MAXIMUM_id = 96620479451906048
     _MAXIMUM_created_at = '2011-07-28 16:38:12'
 
 class Tweet_335204566_2(TweetBase, Base):
     __tablename__ = 'tweet_335204566_2'
 
+    _MINIMUM_id = 96620695978643456
+    _MINIMUM_created_at = '2011-07-28 16:39:03'
     _MAXIMUM_id = 187823936057262080
     _MAXIMUM_created_at = '2012-04-05 08:48:10'
 
 class Tweet_335204566_3(TweetBase, Base):
     __tablename__ = 'tweet_335204566_3'
 
+    _MINIMUM_id = 187823967489376256
+    _MINIMUM_created_at = '2012-04-05 08:48:18'
     _MAXIMUM_id = 275429499905118208
     _MAXIMUM_created_at = '2012-12-03 02:41:24'
 
 class Tweet_335204566_4(TweetBase, Base):
     __tablename__ = 'tweet_335204566_4'
+
+    _MINIMUM_id = 275429574492426240
+    _MINIMUM_created_at = '2012-12-03 02:41:42'
     _MAXIMUM_id = 367339079869808640
     _MAXIMUM_created_at = '2013-08-13 17:37:16'
 
 class Tweet_335204566_5(TweetBase, Base):
     __tablename__ = 'tweet_335204566_5'
 
+    _MINIMUM_id = 367339336745750528
+    _MINIMUM_created_at = '2013-08-13 17:38:17'
     _MAXIMUM_id = 471998072784834561
     _MAXIMUM_created_at = '2014-05-29 12:54:44'
 
 class Tweet_335204566_6(TweetBase, Base):
     __tablename__ = 'tweet_335204566_6'
 
+    _MINIMUM_id = 471998203177365506
+    _MINIMUM_created_at = '2014-05-29 12:55:15'
     _MAXIMUM_id = 556243889950957568
     _MAXIMUM_created_at = '2015-01-17 00:17:32'
 
 class Tweet_335204566_7(TweetBase, Base):
     __tablename__ = 'tweet_335204566_7'
+
+    _MINIMUM_id = 556243972167720960
+    _MINIMUM_created_at = '2015-01-17 00:17:52'
     _MAXIMUM_id = 621310510785409024
     _MAXIMUM_created_at = '2015-07-15 13:29:03'
 
 class Tweet_335204566_8(TweetBase, Base):
     __tablename__ = 'tweet_335204566_8'
+
+    _MINIMUM_id = 621310521631838208
+    _MINIMUM_created_at = '2015-07-15 13:29:06'
     _MAXIMUM_id = 658478158061039616
     _MAXIMUM_created_at = '2015-10-26 03:00:01'
 
 class Tweet_335204566_9(TweetBase, Base):
     __tablename__ = 'tweet_335204566_9'
+
+    _MINIMUM_id = 658478161550815232
+    _MINIMUM_created_at = '2015-10-26 03:00:02'
     _MAXIMUM_id = 673675443527020544
     _MAXIMUM_created_at = '2015-12-07 01:28:36'
 
@@ -265,4 +294,4 @@ Tweet_335204566.append(Tweet_335204566_9)
 
 if __name__ == '__main__':
     datetime.datetime.strptime("2015-07-15 13:29:03", '%Y-%m-%d %H:%M:%S')
-
+    print datetime.date(year=1970, month=1, day=1)
