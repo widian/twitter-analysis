@@ -227,12 +227,17 @@ class WordTable(Base):
 
     #TODO : change pos to interger type value, and make pos table to reduce querying weight
     id = Column(Integer, primary_key=True, autoincrement=True)
-    word = Column(String(16), nullable=False)
+    word = Column(String(140), nullable=False)
     pos = Column(String(16), nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.datetime.now())
 
 class WordAnalysisLog(Base):
     __tablename__ = 'word_analysis_log'
+
+    def __init__(self, word_id, word_count, search_log_type):
+        self.word_id = word_id
+        self.word_count = word_count
+        self.search_log_type = search_log_type
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     word_id = Column(Integer, ForeignKey('word_table.id'), nullable=False)

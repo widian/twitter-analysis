@@ -9,7 +9,7 @@ from collections import OrderedDict
 from twkorean import TwitterKoreanProcessor
 
 from support.mysql_support import Session, AnalysisSession
-from support.model import Tweet, User, TweetType, TweetSearchLog, Relationship, WordTable
+from support.model import Tweet, User, TweetType, TweetSearchLog, Relationship, WordTable, WordAnalysisLog
 from sqlalchemy import desc
 
 
@@ -139,7 +139,6 @@ def tweet_reduce(analysis_type, table_list):
     return tweets
 
 def analysis_tweets(analysis_type, tweet_list):
-    #TODO : FILL IT!
     sess = Session()
     processor = TwitterKoreanProcessor(stemming=False)
     word_dict = dict()
@@ -147,21 +146,34 @@ def analysis_tweets(analysis_type, tweet_list):
     for tweet in tweet_list:
         tokens = processor.tokenize(tweet.text)
         for token in tokens:
-            if token.word not in word_dict:
+            if token.text not in word_dict:
                 word_cache_query = sess.query(WordTable).filter(WordTable.word == token.text)\
                                      .filter(WordTable.pos == token.pos)
                 word_cache = word_cache_query.first()
-                if word_cache[0] is None:
-                    sess.add(WordTable(token.word, token.pos))
+                if word_cache is None:
+                    sess.add(WordTable(token.text, token.pos))
                     sess.commit()
                     word_cache = word_cache_query.first()
                 word = Word(word_cache.word, word_cache.pos, word_cache.id)
-                word_dict[token.word] = word
-            word = word_dict[token.word]
+                word_dict[token.text] = word
+            word = word_dict[token.text]
             if word.id not in word_count_dict:
                 word_count_dict[word.id] = 1
             else:
                 word_count_dict[word.id] += 1
+    tweet_type_data = analysis_type.make_query(sess).first()
+    if tweet_type_data is None:
+        raise Exception('We need tweet search log type')
+
+    #NOTE : DELETE
+    sess.query(WordAnalysisLog).filter(WordAnalysisLog.search_log_type == tweet_type_data.id)\
+                               .delete(synchronize_session='evaluate')
+
+    for key, value in word_count_dict.iteritems():
+        sess.add(WordAnalysisLog(key, value, tweet_type_data.id))
+    sess.commit()
+    sess.close()
+
         
 class Word(object):
     word = None
@@ -172,6 +184,7 @@ class Word(object):
         self.word = word
         self.pos = pos
         self.id = counter
+
 class AnalysisType(object):
     """ contained_linked_tweet : 0 - 링크가 포함된 트윗을 제외, 1 - 링크가 포함된 트윗을 검색, 2 - 링크가 포함된 트윗만 검색
         contain_english : 0 - 외국어권 유저로 추정되는 유저의 트윗을 제외, 1 - 외국어권 유저의 트윗을 검색, 2 - 외국어권 유저의 트윗만 검색
@@ -359,5 +372,7 @@ if __name__ == '__main__':
                       least_tweet_per_user=200)
 
     result = tweet_reduce( analysis_type , Tweet_335204566)
+
+    analysis_tweets(analysis_type, result)
     for item in result:
         print (item.text)
