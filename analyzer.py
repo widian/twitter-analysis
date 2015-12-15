@@ -173,8 +173,22 @@ def analysis_tweets(analysis_type, tweet_list):
         sess.add(WordAnalysisLog(key, value, tweet_type_data.id))
     sess.commit()
     sess.close()
+    
 
-        
+def export_result_to_csv(tweet_type):
+    sess = Session()
+    items = sess.query(WordAnalysisLog).filter(WordAnalysisLog.search_log_type == tweet_type)\
+                                       .order_by(desc(WordAnalysisLog.word_count))\
+                                       .all()
+    f = open("./data/%03d_analysis.csv" % tweet_type, 'w')
+    f.write('word, pos, count\n')
+    for item in items:
+        text = "%s, %s, %s\n" % (item.word.word, item.word.pos, item.word_count)
+        print(text)
+        f.write(text)
+    f.close()
+    sess.close()
+
 class Word(object):
     word = None
     pos = None
@@ -347,32 +361,22 @@ class PrintString(object):
 
 if __name__ == '__main__':
     import datetime
-#    noun_usage_result = analyze(9040962)
-
-#    processor = TwitterKoreanProcessor(stemming=False)
-#    text = u"나바로가 홈런을 쳐서 삼성이 4:0으로 승리했다 쩔엌ㅋㅋㅋㅋㅋ" 
-#    text = u"대신증권사에서 마이다스미소중소형주증권투자신탁상품을 가입했어요"
-#    text = u"미등록어 처리가 강화된 복합명사 분해논문에서의 해석방식은 자연어 전처리에 큰 영향을 미쳤다"
-#    tokens = processor.tokenize(text)
-#    ps = PrintString()
-#    ps.print_tokens(tokens)
-#
 #    user_analyze()
 #
 #    korean_analyze(14206146)
-
-    from support.model import Tweet_335204566
-    analysis_type = AnalysisType( since=datetime.datetime(2015, 10, 1, 0, 0, 0), 
-                      until=datetime.datetime(2015, 10, 10, 0, 0, 0), 
-                      follower_of=335204566,
-                      contain_retweet=0,
-                      contain_english=0,
-                      contain_username_mentioned=0,
-                      contain_linked_tweet=0,
-                      least_tweet_per_user=200)
-
-    result = tweet_reduce( analysis_type , Tweet_335204566)
-
-    analysis_tweets(analysis_type, result)
-    for item in result:
-        print (item.text)
+    export_result_to_csv(6)
+#    from support.model import Tweet_335204566
+#    analysis_type = AnalysisType( since=datetime.datetime(2015, 10, 1, 0, 0, 0), 
+#                      until=datetime.datetime(2015, 10, 10, 0, 0, 0), 
+#                      follower_of=335204566,
+#                      contain_retweet=0,
+#                      contain_english=0,
+#                      contain_username_mentioned=0,
+#                      contain_linked_tweet=0,
+#                      least_tweet_per_user=200)
+#
+#    result = tweet_reduce( analysis_type , Tweet_335204566)
+#
+#    analysis_tweets(analysis_type, result)
+#    for item in result:
+#        print (item.text)

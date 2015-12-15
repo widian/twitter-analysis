@@ -1,5 +1,7 @@
+d
 *.pyc
 *.swp
 config.py
 reference.py
 bot_analyzer.py
+data/
