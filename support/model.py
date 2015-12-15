@@ -3,6 +3,8 @@
 
 import datetime
 from sqlalchemy import Integer, String, BigInteger, Column, DateTime, Index
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import UniqueConstraint
 
@@ -108,6 +110,9 @@ class Celebrity(Base):
     __tablename__ = 'celebrity'
 
     def __init__(self, id, celebrity_type):
+        #NOTE : NOT IMPLEMENTED IN DATABASE
+        raise Exception("NOT IMPLEMENTED IN DATABASE")
+
         self.id = id
         self.celebrity_type = celebrity_type
     #TODO : Make relationship with User. Use User information
@@ -119,6 +124,8 @@ class CelebrityType(Base):
     __tablename__ = 'celebrity_type'
     
     def __init__(self, celebrity_type, type_name):
+        #NOTE : NOT IMPLEMENTED IN DATABASE
+        raise Exception("NOT IMPLEMENTED IN DATABASE")
         self.celebrity_type = celebrity_type
         self.type_name = type_name
     celebrity_type = Column(Integer, primary_key=True)
@@ -167,14 +174,14 @@ class TweetType(Base):
     __tablename__ = 'tweet_type'
 
     def __init__(self, 
-            start_time=None, end_time=None, 
+            since=None, until=None, 
             follower_of=None, 
             contain_retweet=1, contain_english=1, contain_username_mentioned=1,
             contain_linked_tweet=1, least_tweet_per_user=0):
-        if start_time is not None:
-            self.start_time = start_time
-        if end_time is not None:
-            self.end_time = end_time
+        if since is not None:
+            self.since = since
+        if until is not None:
+            self.until = until
         if follower_of is not None:
             self.follower_of = follower_of
 
@@ -189,8 +196,8 @@ class TweetType(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     created_time = Column(DateTime, nullable=False, default=datetime.datetime.now())
 
-    start_time = Column(DateTime)
-    end_time = Column(DateTime, nullable=False, default=datetime.datetime.now())
+    since = Column(DateTime)
+    until = Column(DateTime, nullable=False, default=datetime.datetime.now())
 
     follower_of = Column(BigInteger)
     contain_retweet = Column(Integer, default=1)
@@ -202,11 +209,39 @@ class TweetType(Base):
 class TweetSearchLog(Base):
     __tablename__ = 'tweet_search_log'
 
+    def __init__(self, tweet_id, tweet_type):
+        self.tweet_id = tweet_id
+        self.tweet_type = tweet_type
     id = Column(Integer, primary_key=True, autoincrement=True)
     tweet_id = Column(BigInteger, nullable=False)
     tweet_type = Column(Integer, nullable=False)
 
     collected_time = Column(DateTime, nullable=False, default=datetime.datetime.now())
+
+class WordTable(Base):
+    __tablename__ = 'word_table'
+    
+    def __init__(self, word, pos):
+        self.word = word
+        self.pos = pos
+
+    #TODO : change pos to interger type value, and make pos table to reduce querying weight
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    word = Column(String(16), nullable=False)
+    pos = Column(String(16), nullable=False)
+    created_at = Column(DateTime, nullable=False, default=datetime.datetime.now())
+
+class WordAnalysisLog(Base):
+    __tablename__ = 'word_analysis_log'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    word_id = Column(Integer, ForeignKey('word_table.id'), nullable=False)
+    word = relationship("WordTable")
+    search_log_type = Column(Integer, ForeignKey('tweet_type.id'), nullable=False)
+    tweet_type = relationship("TweetType")
+    word_count = Column(Integer, nullable=False, default=0)
+    created_at = Column(DateTime, nullable=False, default=datetime.datetime.now())
+
 
 class Tweet_335204566_1(TweetBase, Base):
     __tablename__ = 'tweet_335204566_1'

@@ -130,7 +130,7 @@ class Crawler(object):
         """
         def get_user_info(self, screen_name=None, user_id=None, **kwargs):
             #TODO : 만약 kwargs에 since가 있다면, 유저의 가장 최근 status 정보를 받아서 func에 정보를 전달하기
-            process_name = "/users/show/: id"
+            process_name = "/users/show/:id"
             sess = Session()
             """ 만약 해당 유저정보가 이미 저장되어있다면
             """
@@ -206,9 +206,9 @@ class UserTimelineCrawler(Crawler):
                 passed_since = False
                 for tweet in statuses:
                     self.minimum_max_id = tweet.id
-#                    exist = sess.query(Tweet).filter(Tweet.id==tweet.id).first()
-#                    if not exist:
-                        # Make Data Row for add to table
+                    if self.to_datetime(tweet.created_at) < datetime.datetime.combine(since, datetime.datetime.min.time()):
+                        passed_since = True
+                        break
                     if cached_maximum_id < tweet.id:
                         text = self.parse_ignore(tweet.text)
                         if len(text) > 140:
@@ -226,9 +226,6 @@ class UserTimelineCrawler(Crawler):
                         sess.add(tweet_chunk)
                     """ print tweet search result (Unnecessary)
                     """
-                    if self.to_datetime(tweet.created_at) < datetime.datetime.combine(since, datetime.datetime.min.time()):
-                        passed_since = True
-                        break
                     tweet_text = ('%s %s @%s tweeted: %s' % (tweet.id, tweet.created_at, tweet.GetUser().screen_name, tweet.text))
                 if passed_since:
                     break
@@ -463,4 +460,5 @@ if __name__ == "__main__":
 #    crawling_tweet_search()
 #    print UserTimelineCrawler().get_rate_limit_status()
 #    UserFollowerIDs().crawling('Kiatigers')
-    UserTimelineCrawler().crawling('deresute_border')
+#    UserTimelineCrawler().crawling('deresute_border')
+

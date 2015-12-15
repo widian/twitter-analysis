@@ -9,7 +9,7 @@ from collections import OrderedDict
 from twkorean import TwitterKoreanProcessor
 
 from support.mysql_support import Session, AnalysisSession
-from support.model import Tweet, User, TweetType, Relationship
+from support.model import Tweet, User, TweetType, TweetSearchLog, Relationship, WordTable
 from sqlalchemy import desc
 
 
@@ -108,32 +108,70 @@ def korean_analyze(user_id):
     plt.plot(x, y, 'o')
     plt.show()
 
-def tweet_collect(analysis_type=None):
+def tweet_reduce(analysis_type, table_list):
     sess = Session()
     if analysis_type is None or not isinstance(analysis_type, AnalysisType):
         print("Unknown Analysis Type")
         return False
     tweet_type_query = analysis_type.make_query(sess)
     type_result = tweet_type_query.first()
+    tweets = list()
+    for table in table_list:
+        result = analysis_type.get_tweet_list(table, sess)
+        if result is not None:
+            tweets += result
+
     if type_result is not None:
         """ cached된 typed tweet이 있을 때
         """
-        #TODO : 캐싱된 트윗 리스트가 최신인지 확인하고 정리해야함
         print("DEFINED TYPE")
     else:
-        #TODO : Tweet Type을 추가시키고 tweet을 캐싱 한 뒤에 
-        #       캐싱 된 시점을 저장해야함.
         tweet_type_data = analysis_type.make_type_data()
         sess.add(tweet_type_data)
         sess.commit()
         type_result = tweet_type_query.first()
-
-
-        #Type의 번호를 type_result로부터 얻을 수 있음.
-
+        type_id = type_result.id
+        for tweet in tweets:
+            tweet_search_log = TweetSearchLog(tweet.id, type_id)
+            sess.add(tweet_search_log)
+        sess.commit()
     sess.close()
-    return True
+    return tweets
 
+def analysis_tweets(analysis_type, tweet_list):
+    #TODO : FILL IT!
+    sess = Session()
+    processor = TwitterKoreanProcessor(stemming=False)
+    word_dict = dict()
+    word_count_dict = dict()
+    for tweet in tweet_list:
+        tokens = processor.tokenize(tweet.text)
+        for token in tokens:
+            if token.word not in word_dict:
+                word_cache_query = sess.query(WordTable).filter(WordTable.word == token.text)\
+                                     .filter(WordTable.pos == token.pos)
+                word_cache = word_cache_query.first()
+                if word_cache[0] is None:
+                    sess.add(WordTable(token.word, token.pos))
+                    sess.commit()
+                    word_cache = word_cache_query.first()
+                word = Word(word_cache.word, word_cache.pos, word_cache.id)
+                word_dict[token.word] = word
+            word = word_dict[token.word]
+            if word.id not in word_count_dict:
+                word_count_dict[word.id] = 1
+            else:
+                word_count_dict[word.id] += 1
+        
+class Word(object):
+    word = None
+    pos = None
+    id = 0
+
+    def __init__(self, word, pos, counter):
+        self.word = word
+        self.pos = pos
+        self.id = counter
 class AnalysisType(object):
     """ contained_linked_tweet : 0 - 링크가 포함된 트윗을 제외, 1 - 링크가 포함된 트윗을 검색, 2 - 링크가 포함된 트윗만 검색
         contain_english : 0 - 외국어권 유저로 추정되는 유저의 트윗을 제외, 1 - 외국어권 유저의 트윗을 검색, 2 - 외국어권 유저의 트윗만 검색
@@ -157,6 +195,8 @@ class AnalysisType(object):
     def __init__(self, since=None, until=None, follower_of=None, 
             contain_linked_tweet=1, contain_username_mentioned=1, contain_english=1,
             contain_retweet=1, least_tweet_per_user=0):
+        if not (isinstance(since, datetime.datetime) and isinstance(until, datetime.datetime)):
+            raise Exception('since and until only accept datetime object')
         self.contain_retweet = contain_retweet
         self.contain_linked_tweet = contain_linked_tweet
         self.contain_username_mentioned = contain_username_mentioned
@@ -244,8 +284,6 @@ class AnalysisType(object):
                 else:
                     if tweet_count_dict[tweet.user] < self.least_tweet_per_user:
                         continue
-                    else: 
-                        print(tweet.user, tweet_count_dict[tweet.user])
             result.append(tweet)
         return result 
 
@@ -310,30 +348,16 @@ if __name__ == '__main__':
 #
 #    korean_analyze(14206146)
 
-#    tweet_collect(AnalysisType( since=datetime.date(2015, 10, 1), 
-#                      until=datetime.date(2015, 10, 10), 
-#                      follower_of=335204566,
-#                      contain_retweet=0,
-#                      contain_english=0,
-#                      contain_username_mentioned=0,
-#                      contain_linked_tweet=0,
-#                      least_tweet_per_user=200)
-#                 )
     from support.model import Tweet_335204566
-    sess = Session()
-    tweets = list()
-    for table in Tweet_335204566:
-        result = AnalysisType( since=datetime.datetime(2015, 10, 1, 0, 0, 0), 
-                          until=datetime.datetime(2015, 10, 10, 0, 0, 0), 
-                          follower_of=335204566,
-                          contain_retweet=0,
-                          contain_english=0,
-                          contain_username_mentioned=0,
-                          contain_linked_tweet=0,
-                          least_tweet_per_user=200).get_tweet_list(table, sess)
-        if result is not None:
-            tweets += result
-    for tweet in tweets:
-        print(tweet.text)
-    print(len(tweets))
-    sess.close()
+    analysis_type = AnalysisType( since=datetime.datetime(2015, 10, 1, 0, 0, 0), 
+                      until=datetime.datetime(2015, 10, 10, 0, 0, 0), 
+                      follower_of=335204566,
+                      contain_retweet=0,
+                      contain_english=0,
+                      contain_username_mentioned=0,
+                      contain_linked_tweet=0,
+                      least_tweet_per_user=200)
+
+    result = tweet_reduce( analysis_type , Tweet_335204566)
+    for item in result:
+        print (item.text)

@@ -28,6 +28,10 @@ if __name__ == '__main__':
                     print 'wait %d seconds' % (result[ErrorNumbers.RATE_LIMIT_ERROR] + 10)
                     time.sleep( result[ErrorNumbers.RATE_LIMIT_ERROR] + 10)
                     result = timeline_crawler.crawling(user_id=item.follower, since=datetime.date(year=2015, month=7, day=15))
+                    if user is None or user.screen_name is None:
+                        pass
+                    else:
+                        print 'pass ', user.screen_name
                 else:
                     print "UNKNOWN ERROR "
                     break
