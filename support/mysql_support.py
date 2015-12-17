@@ -14,9 +14,9 @@ analysis_engine = create_engine(SQLALCHEMY_ANALYSIS_URI)
 
 from sqlalchemy.orm.session import sessionmaker
 from model import User, Tweet
-Session = sessionmaker()
+Session = sessionmaker(expire_on_commit=False)
 Session.configure(bind=engine)
-AnalysisSession = sessionmaker()
+AnalysisSession = sessionmaker(expire_on_commit=False)
 AnalysisSession.configure(bind=analysis_engine)
 
 

@@ -28,6 +28,7 @@ def analyze(user_id):
         tokens = processor.tokenize(tweet.text)
         tweet_tokens.append(tokens)
         for token in tokens:
+            print(token.unknown)
             if token.pos == 'Noun':
                 noun_counter += 1
                 if token.text in noun_usage_dict:
@@ -146,12 +147,14 @@ def analysis_tweets(analysis_type, tweet_list):
     for tweet in tweet_list:
         tokens = processor.tokenize(tweet.text)
         for token in tokens:
+            if token.pos == 'URL':
+                continue
             if token.text not in word_dict:
                 word_cache_query = sess.query(WordTable).filter(WordTable.word == token.text)\
                                      .filter(WordTable.pos == token.pos)
                 word_cache = word_cache_query.first()
                 if word_cache is None:
-                    sess.add(WordTable(token.text, token.pos))
+                    sess.add(WordTable(token.text, token.pos, token.unknown))
                     sess.commit()
                     word_cache = word_cache_query.first()
                 word = Word(word_cache.word, word_cache.pos, word_cache.id)
@@ -168,12 +171,13 @@ def analysis_tweets(analysis_type, tweet_list):
     #NOTE : DELETE
     sess.query(WordAnalysisLog).filter(WordAnalysisLog.search_log_type == tweet_type_data.id)\
                                .delete(synchronize_session='evaluate')
-
+    count = 0
     for key, value in word_count_dict.iteritems():
         sess.add(WordAnalysisLog(key, value, tweet_type_data.id))
+        count += value
     sess.commit()
     sess.close()
-    
+    return count
 
 def export_result_to_csv(tweet_type):
     sess = Session()
@@ -181,10 +185,9 @@ def export_result_to_csv(tweet_type):
                                        .order_by(desc(WordAnalysisLog.word_count))\
                                        .all()
     f = open("./data/%03d_analysis.csv" % tweet_type, 'w')
-    f.write('word, pos, count\n')
+    f.write('word, pos, is_unknown, count\n')
     for item in items:
-        text = "%s, %s, %s\n" % (item.word.word, item.word.pos, item.word_count)
-        print(text)
+        text = "%s, %s, %d, %s\n" % (item.word.word, item.word.pos, item.word.unknown, item.word_count)
         f.write(text)
     f.close()
     sess.close()
@@ -312,6 +315,7 @@ class AnalysisType(object):
                     if tweet_count_dict[tweet.user] < self.least_tweet_per_user:
                         continue
             result.append(tweet)
+        print ('Finish to make tweet list')
         return result 
 
     def make_query(self, session):
@@ -325,6 +329,15 @@ class AnalysisType(object):
                        .filter(TweetType.contain_linked_tweet == self.contain_linked_tweet)\
                        .filter(TweetType.least_tweet_per_user == self.least_tweet_per_user)
         return query 
+
+    def get_type_id(self, session):
+        type_row = self.make_query(session).first()
+        if type_row is None:
+            session.add(self.make_type_data())
+            session.commit()
+            type_row = self.make_query(session).first()
+        return type_row.id
+
 
     def make_type_data(self):
         return TweetType(
@@ -361,22 +374,32 @@ class PrintString(object):
 
 if __name__ == '__main__':
     import datetime
+#    analyze(3146287546)
 #    user_analyze()
 #
 #    korean_analyze(14206146)
-    export_result_to_csv(6)
-#    from support.model import Tweet_335204566
-#    analysis_type = AnalysisType( since=datetime.datetime(2015, 10, 1, 0, 0, 0), 
-#                      until=datetime.datetime(2015, 10, 10, 0, 0, 0), 
-#                      follower_of=335204566,
-#                      contain_retweet=0,
-#                      contain_english=0,
-#                      contain_username_mentioned=0,
-#                      contain_linked_tweet=0,
-#                      least_tweet_per_user=200)
-#
-#    result = tweet_reduce( analysis_type , Tweet_335204566)
-#
-#    analysis_tweets(analysis_type, result)
-#    for item in result:
-#        print (item.text)
+#    export_result_to_csv(6)
+    import time
+    from support.model import Tweet_335204566
+    analysis_type = AnalysisType( since=datetime.datetime(2015, 11, 1, 0, 0, 0), 
+                      until=datetime.datetime(2015, 12, 1, 0, 0, 0), 
+                      follower_of=335204566,
+                      contain_retweet=2,
+                      contain_english=0,
+                      contain_username_mentioned=0,
+                      contain_linked_tweet=0,
+                      least_tweet_per_user=200)
+    start = time.time()
+    result = tweet_reduce( analysis_type , Tweet_335204566)
+    print(time.time() - start, " for get tweet list")
+    start = time.time()
+    print("number of words : %d" % analysis_tweets(analysis_type, result))
+    print(time.time() - start, " for analysis tweet list")
+    start = time.time()
+    print("number of tweets : %d" % len(result))
+    sess = Session()
+    export_result_to_csv(analysis_type.get_type_id(sess))
+    print(time.time() - start, " for export result to csv file")
+    sess.close()
+
+    print("END")

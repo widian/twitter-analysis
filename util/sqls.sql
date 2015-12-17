@@ -59,3 +59,32 @@ WHERE
         WHERE
             following = 335204566) and
 tweet.id > 275429499905118208 LIMIT 1000000;
+
+#word_analysis_log로 부터 word_count내림차순으로 corpus에 없는 단어들만 출력
+SELECT 
+    word_analysis_log.search_log_type,
+    word_analysis_log.word_count,
+    word_table.word,
+    word_table.pos
+FROM
+    twitter.word_analysis_log,
+    twitter.word_table
+WHERE
+    word_analysis_log.word_id = word_table.id
+    and word_table.unknown = 1
+    #and word_table.pos="Noun"
+ORDER BY word_count DESC;
+
+#281916923을 following하고 있으면서 아직 트윗이 수집되지 않은 user의 수를 표시
+SELECT 
+    count(id)
+FROM
+    twitter.user
+WHERE
+    user.id IN (SELECT 
+            relationship.follower
+        FROM
+            relationship
+        WHERE
+            relationship.following = 281916923)
+    and user.tweet_collected_date is NULL;

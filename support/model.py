@@ -221,14 +221,16 @@ class TweetSearchLog(Base):
 class WordTable(Base):
     __tablename__ = 'word_table'
     
-    def __init__(self, word, pos):
+    def __init__(self, word, pos, unknown):
         self.word = word
         self.pos = pos
+        self.unknown = unknown
 
     #TODO : change pos to interger type value, and make pos table to reduce querying weight
     id = Column(Integer, primary_key=True, autoincrement=True)
     word = Column(String(140), nullable=False)
     pos = Column(String(16), nullable=False)
+    unknown = Column(Integer, nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.datetime.now())
 
 class WordAnalysisLog(Base):
