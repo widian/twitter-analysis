@@ -12,6 +12,7 @@ from support.mysql_support import Session, AnalysisSession
 from support.model import Tweet, User, TweetType, TweetSearchLog, Relationship, WordTable, WordAnalysisLog
 from sqlalchemy import desc
 
+import datetime
 
 def analyze(user_id):
     sess = Session()
@@ -169,6 +170,8 @@ def analysis_tweets(analysis_type, tweet_list):
         raise Exception('We need tweet search log type')
 
     #NOTE : DELETE
+    sess.query(TweetSearchLog).filter(TweetSearchLog.tweet_type == tweet_type_data.id)\
+                              .delete(synchronize_session='evaluate')
     sess.query(WordAnalysisLog).filter(WordAnalysisLog.search_log_type == tweet_type_data.id)\
                                .delete(synchronize_session='evaluate')
     count = 0
@@ -390,6 +393,9 @@ if __name__ == '__main__':
                       contain_linked_tweet=0,
                       least_tweet_per_user=200)
     start = time.time()
+    
+    """ Follower tweets table made order ->
+    """
     tweet_list = Tweet_335204566 + Tweet_281916923
     result = tweet_reduce( analysis_type , tweet_list)
     print(time.time() - start, " for get tweet list")
