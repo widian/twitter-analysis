@@ -15,7 +15,8 @@ if __name__ == '__main__':
     sess = Session()
     
     #target_id = 335204566
-    target_id = 281916923
+    #target_id = 281916923
+    target_id = 44771983
 
     result = sess.query(Relationship).filter(Relationship.following == target_id).all()
     for item in result:

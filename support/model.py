@@ -323,6 +323,14 @@ class Tweet_335204566_9(TweetBase, Base):
     _MAXIMUM_id = 673675443527020544
     _MAXIMUM_created_at = '2015-12-07 01:28:36'
 
+class Tweet_281916923_1(TweetBase, Base):
+    __tablename__ = 'tweet_281916923_1'
+
+    _MINIMUM_created_at = '2015-07-15 00:00:03'
+    _MINIMUM_id = 621106918325497856
+    _MAXIMUM_created_at = '2015-12-17 07:37:34'
+    _MAXIMUM_id = 677392173583601664
+
 Tweet_335204566 = list()
 Tweet_335204566.append(Tweet_335204566_1)
 Tweet_335204566.append(Tweet_335204566_2)
@@ -333,6 +341,9 @@ Tweet_335204566.append(Tweet_335204566_6)
 Tweet_335204566.append(Tweet_335204566_7)
 Tweet_335204566.append(Tweet_335204566_8)
 Tweet_335204566.append(Tweet_335204566_9)
+
+Tweet_281916923 = list()
+Tweet_281916923.append(Tweet_281916923_1)
 
 if __name__ == '__main__':
     datetime.datetime.strptime("2015-07-15 13:29:03", '%Y-%m-%d %H:%M:%S')

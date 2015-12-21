@@ -380,17 +380,18 @@ if __name__ == '__main__':
 #    korean_analyze(14206146)
 #    export_result_to_csv(6)
     import time
-    from support.model import Tweet_335204566
+    from support.model import Tweet_335204566, Tweet_281916923
     analysis_type = AnalysisType( since=datetime.datetime(2015, 11, 1, 0, 0, 0), 
                       until=datetime.datetime(2015, 12, 1, 0, 0, 0), 
                       follower_of=335204566,
-                      contain_retweet=2,
+                      contain_retweet=0,
                       contain_english=0,
-                      contain_username_mentioned=0,
+                      contain_username_mentioned=2,
                       contain_linked_tweet=0,
                       least_tweet_per_user=200)
     start = time.time()
-    result = tweet_reduce( analysis_type , Tweet_335204566)
+    tweet_list = Tweet_335204566 + Tweet_281916923
+    result = tweet_reduce( analysis_type , tweet_list)
     print(time.time() - start, " for get tweet list")
     start = time.time()
     print("number of words : %d" % analysis_tweets(analysis_type, result))
