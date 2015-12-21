@@ -88,3 +88,82 @@ WHERE
         WHERE
             relationship.following = 281916923)
     and user.tweet_collected_date is NULL;
+#tweet_search_log로부터 tweet_id가 중복되서 등장하는 리스트를 보여줌
+SELECT
+    tweet_id, COUNT(*)
+FROM
+    tweet_search_log
+GROUP BY
+    tweet_id
+HAVING 
+    COUNT(*) > 1
+
+#tweet_search_log중 text에 'https'가 포함되어 있고 검색한 tweet_type이 9인 트윗들 가져오기
+SELECT 
+    *
+FROM
+    tweet_335204566_9 AS t
+WHERE
+    t.id IN (SELECT 
+            tweet_id
+        FROM
+            tweet_search_log
+        WHERE
+            tweet_type = 9 AND t.text LIKE '%https%');
+
+#search_log_type=9인 word analysis log와 search_logt_type=10인 word analysis log의 교집합 중에 search_log_type이 10인 word들의 집합.
+SELECT 
+    word_analysis_log.search_log_type,
+    word_analysis_log.word_id,
+    word_analysis_log.word_count,
+    word_table.word,
+    word_table.pos
+FROM
+    twitter.word_analysis_log,
+    twitter.word_table
+WHERE
+    word_analysis_log.word_id = word_table.id
+        AND word_analysis_log.word_id IN (SELECT 
+            word_id
+        FROM
+            word_analysis_log
+        WHERE
+            search_log_type = 9)
+        AND word_analysis_log.word_id IN (SELECT 
+            word_id
+        FROM
+            word_analysis_log
+        WHERE
+            search_log_type = 10)
+        AND (search_log_type = 10)
+GROUP BY word
+ORDER BY word_count DESC;
+
+#search_log_type=9이면서 search_log_type=10에 나타나지 않은 단어들을 대상으로 screen_name을 제외한 단어들을 나타낸 것
+SELECT 
+    word_analysis_log.search_log_type,
+    word_analysis_log.word_id,
+    word_analysis_log.word_count,
+    word_table.word,
+    word_table.pos
+FROM
+    twitter.word_analysis_log,
+    twitter.word_table
+WHERE
+    word_analysis_log.word_id = word_table.id
+        AND word_analysis_log.word_id IN (SELECT 
+            word_id
+        FROM
+            word_analysis_log
+        WHERE
+            search_log_type = 9)
+        AND word_analysis_log.word_id NOT IN (SELECT 
+            word_id
+        FROM
+            word_analysis_log
+        WHERE
+            search_log_type = 10)
+        AND search_log_type = 9
+        AND pos != 'ScreenName'
+GROUP BY word
+ORDER BY word_count DESC;
