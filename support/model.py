@@ -331,6 +331,22 @@ class Tweet_281916923_1(TweetBase, Base):
     _MAXIMUM_created_at = '2015-12-17 07:37:34'
     _MAXIMUM_id = 677392173583601664
 
+class Tweet_44771983_1(TweetBase, Base):
+    __tablename__ = 'tweet_44771983_1'
+
+    _MINIMUM_created_at = '2015-07-15 00:00:30'
+    _MINIMUM_id = 621107030376321028
+    _MAXIMUM_created_at = '2015-12-16 06:01:20'
+    _MAXIMUM_id = 677005569400639489
+
+class Tweet_44771983_2(TweetBase, Base):
+    __tablename__ = 'tweet_44771983_2'
+
+    _MINIMUM_created_at = '2015-12-16 06:01:23'
+    _MINIMUM_id = 677005581903884292
+    _MAXIMUM_created_at = '2015-12-24 16:06:08'
+    _MAXIMUM_id = 680056873668620289
+
 Tweet_335204566 = list()
 Tweet_335204566.append(Tweet_335204566_1)
 Tweet_335204566.append(Tweet_335204566_2)
@@ -344,6 +360,10 @@ Tweet_335204566.append(Tweet_335204566_9)
 
 Tweet_281916923 = list()
 Tweet_281916923.append(Tweet_281916923_1)
+
+Tweet_44771983 = list()
+Tweet_44771983.append(Tweet_44771983_1)
+Tweet_44771983.append(Tweet_44771983_2)
 
 if __name__ == '__main__':
     datetime.datetime.strptime("2015-07-15 13:29:03", '%Y-%m-%d %H:%M:%S')

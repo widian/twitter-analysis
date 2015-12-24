@@ -14,9 +14,16 @@ if __name__ == '__main__':
     GetSleepTime = Api().GetSleepTime
     sess = Session()
     
+    """ NC 다이노스 """
     #target_id = 335204566
+
+    """ 삼성 라이온즈 """
     #target_id = 281916923
-    target_id = 44771983
+
+    """ 기아 타이거즈 """
+    #target_id = 44771983
+
+    """ """
 
     result = sess.query(Relationship).filter(Relationship.following == target_id).all()
     for item in result:

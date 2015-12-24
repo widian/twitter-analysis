@@ -1,3 +1,8 @@
+#max, min 찾기
+SELECT 
+    MAX(id), MAX(created_at), MIN(id), MIN(created_at)
+FROM
+    tweet_44771983_1;
 #동시에 팔로잉 하고있는 계정의 리스트 받기
 SELECT 
     twitter.relationship.follower
@@ -140,6 +145,7 @@ GROUP BY word
 ORDER BY word_count DESC;
 
 #search_log_type=9이면서 search_log_type=10에 나타나지 않은 단어들을 대상으로 screen_name을 제외한 단어들을 나타낸 것
+#별로 의미있는 정보를 도출하지는 못하는듯..
 SELECT 
     word_analysis_log.search_log_type,
     word_analysis_log.word_id,
@@ -202,3 +208,27 @@ SELECT
             COUNT(id)
         FROM
             tweet_335204566_9) AS sum;
+
+#특정 word가 word_analysis에서 어디에 등장했는지에 대해서
+SELECT 
+    word_analysis_log.word_count,
+    word_analysis_log.word_id AS id,
+    word_analysis_log.search_log_type AS tweet_type,
+    word_table.word AS word,
+    word_table.pos AS pos,
+    word_table.unknown,
+    word_table.created_at AS word_created_at,
+    word_analysis_log.created_at AS word_analyzed_at
+FROM
+    word_analysis_log
+        JOIN
+    word_table ON word_analysis_log.word_id = word_table.id
+WHERE
+    word_id IN (SELECT 
+            id
+        FROM
+            word_table
+        WHERE
+            word_table.word = '은');
+
+
