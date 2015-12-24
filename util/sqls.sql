@@ -167,3 +167,38 @@ WHERE
         AND pos != 'ScreenName'
 GROUP BY word
 ORDER BY word_count DESC;
+
+#모든 tweet horizontal partitions에 대한 id count를 반환
+#TODO : tweet horizontal partitions 테이블 이름 값을 특정 테이블에 저장하도록 해야할듯.
+SELECT 
+    (SELECT 
+            COUNT(id)
+        FROM
+            tweet_281916923_1) + (SELECT 
+            COUNT(id)
+        FROM
+            tweet_335204566_1) + (SELECT 
+            COUNT(id)
+        FROM
+            tweet_335204566_2) + (SELECT 
+            COUNT(id)
+        FROM
+            tweet_335204566_3) + (SELECT 
+            COUNT(id)
+        FROM
+            tweet_335204566_4) + (SELECT 
+            COUNT(id)
+        FROM
+            tweet_335204566_5) + (SELECT 
+            COUNT(id)
+        FROM
+            tweet_335204566_6) + (SELECT 
+            COUNT(id)
+        FROM
+            tweet_335204566_7) + (SELECT 
+            COUNT(id)
+        FROM
+            tweet_335204566_8) + (SELECT 
+            COUNT(id)
+        FROM
+            tweet_335204566_9) AS sum;

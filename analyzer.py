@@ -381,4 +381,4 @@ if __name__ == '__main__':
 #
 #    korean_analyze(14206146)
 #    export_result_to_csv(6)
-
+    pass
