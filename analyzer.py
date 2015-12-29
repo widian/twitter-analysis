@@ -14,34 +14,6 @@ from sqlalchemy import desc
 
 import datetime
 
-def analyze(user_id):
-    sess = Session()
-    ps = PrintString()
-    processor = TwitterKoreanProcessor(stemming=False)
-
-    tweets = sess.query(Tweet)\
-                 .filter(Tweet.user == user_id) \
-                 .all()
-    noun_usage_dict = OrderedDict()
-    noun_counter = 0
-    tweet_tokens = list()
-    for tweet in tweets:
-        tokens = processor.tokenize(tweet.text)
-        tweet_tokens.append(tokens)
-        for token in tokens:
-            print(token.unknown)
-            if token.pos == 'Noun':
-                noun_counter += 1
-                if token.text in noun_usage_dict:
-                    noun_usage_dict[token.text] += 1
-                else:
-                    noun_usage_dict[token.text] = 1
-        print(tweet.text)
-        ps.print_tokens(tokens)
-#        print(noun_counter)
-    sess.close()
-    return noun_usage_dict, noun_counter, tweet_tokens
-
 def user_analyze():
     sess = Session()
     ps = PrintString()
@@ -123,6 +95,7 @@ def tweet_reduce(analysis_type, table_list):
         if result is not None:
             tweets += result
 
+
     if type_result is not None:
         """ cached된 typed tweet이 있을 때
         """
@@ -131,12 +104,17 @@ def tweet_reduce(analysis_type, table_list):
         tweet_type_data = analysis_type.make_type_data()
         sess.add(tweet_type_data)
         sess.commit()
-        type_result = tweet_type_query.first()
-        type_id = type_result.id
-        for tweet in tweets:
-            tweet_search_log = TweetSearchLog(tweet.id, type_id)
-            sess.add(tweet_search_log)
-        sess.commit()
+
+    #TODO : If already tweet search log cached, pass below steps
+    type_result = tweet_type_query.first()
+    type_id = type_result.id
+    #NOTE : DELETE
+    sess.query(TweetSearchLog).filter(TweetSearchLog.tweet_type == type_id)\
+                              .delete(synchronize_session='evaluate')
+    for tweet in tweets:
+        tweet_search_log = TweetSearchLog(tweet.id, type_id)
+        sess.add(tweet_search_log)
+    sess.commit()
     sess.close()
     return tweets
 
@@ -170,8 +148,6 @@ def analysis_tweets(analysis_type, tweet_list):
         raise Exception('We need tweet search log type')
 
     #NOTE : DELETE
-    sess.query(TweetSearchLog).filter(TweetSearchLog.tweet_type == tweet_type_data.id)\
-                              .delete(synchronize_session='evaluate')
     sess.query(WordAnalysisLog).filter(WordAnalysisLog.search_log_type == tweet_type_data.id)\
                                .delete(synchronize_session='evaluate')
     count = 0
@@ -181,6 +157,20 @@ def analysis_tweets(analysis_type, tweet_list):
     sess.commit()
     sess.close()
     return count
+
+def produce_analysis_type(type_number):
+    sess = Session()
+    analysis_type_result = sess.query(TweetType).filter(TweetType.id == type_number).first()
+
+    analysis_type = AnalysisType(since=analysis_type_result.since,
+                                 until=analysis_type_result.until,
+                                 follower_of=analysis_type_result.follower_of,
+                                 contain_linked_tweet=analysis_type_result.contain_linked_tweet,
+                                 contain_username_mentioned=analysis_type_result.contain_username_mentioned,
+                                 contain_english=analysis_type_result.contain_english,
+                                 contain_retweet=analysis_type_result.contain_retweet,
+                                 least_tweet_per_user=analysis_type_result.least_tweet_per_user)
+    return analysis_type
 
 def export_result_to_csv(tweet_type):
     sess = Session()
@@ -348,7 +338,9 @@ class AnalysisType(object):
                 contain_retweet=self.contain_retweet, contain_english=self.contain_english,
                 contain_username_mentioned=self.contain_username_mentioned, contain_linked_tweet=self.contain_linked_tweet,
                 least_tweet_per_user=self.least_tweet_per_user)
-
+            
+    def __repr__(self): 
+        return ("since : %s, until : %s, follower_of : %s, contain_retweet : %d, contain_english : %d, contain_username_mentioned : %d, contain_linked_tweet : %d, least_tweet_per_user : %d" % (self.since, self.until, self.follower_of, self.contain_retweet, self.contain_english, self.contain_username_mentioned, self.contain_linked_tweet, self.least_tweet_per_user))
 
 class PrintString(object):
     def print_tokens(self, tokens, end="\n"):
