@@ -9,8 +9,10 @@ from collections import OrderedDict
 from twkorean import TwitterKoreanProcessor
 
 from support.mysql_support import Session, AnalysisSession
-from support.model import Tweet, User, TweetType, TweetSearchLog, Relationship, WordTable, WordAnalysisLog
+from support.model import Tweet, User, TweetType, TweetSearchLog, Relationship, WordTable, WordAnalysisLog, UserList
 from sqlalchemy import desc
+
+from support.analyzer_model import Word, AnalysisType, PrintString, UserListType
 
 import datetime
 
@@ -18,7 +20,7 @@ def user_analyze():
     sess = Session()
     ps = PrintString()
 
-    processor = TwitterKoreanProcessor(stemming=False)
+    processor = TwitterKoreanProcessor()
 
     users = sess.query(User)\
                 .filter(User.language_type == None)\
@@ -120,7 +122,7 @@ def tweet_reduce(analysis_type, table_list):
 
 def analysis_tweets(analysis_type, tweet_list):
     sess = Session()
-    processor = TwitterKoreanProcessor(stemming=False)
+    processor = TwitterKoreanProcessor()
     word_dict = dict()
     word_count_dict = dict()
     for tweet in tweet_list:
@@ -185,192 +187,24 @@ def export_result_to_csv(tweet_type):
     f.close()
     sess.close()
 
-class Word(object):
-    word = None
-    pos = None
-    id = 0
-
-    def __init__(self, word, pos, counter):
-        self.word = word
-        self.pos = pos
-        self.id = counter
-
-class AnalysisType(object):
-    """ contained_linked_tweet : 0 - 링크가 포함된 트윗을 제외, 1 - 링크가 포함된 트윗을 검색, 2 - 링크가 포함된 트윗만 검색
-        contain_english : 0 - 외국어권 유저로 추정되는 유저의 트윗을 제외, 1 - 외국어권 유저의 트윗을 검색, 2 - 외국어권 유저의 트윗만 검색
-        contain_username_mentioned : 0 - 특정 유저에게 답변한 트윗을 제외, 1 - 특정 유저에게 답변한 트윗을 포함, 2 - 특정 유저에게 답변한 트윗만 검색
-        contain_retweet : 0 - 리트윗을 제외, 1 - 리트윗한 트윗을 검색, 2 - 리트윗한 트윗만 검색
-        least_tweet_per_user : 특정 유저가 least_tweet_per_user만큼의 트윗을 하지 않았다면 검색하지 않음.
-
-        follower_of : follower_of의 follower인 트윗만 검색
-        since : since부터의 트윗만 검색
-        until : until까지의 트윗만 검색
-    """
-    contain_linked_tweet = 1 
-    contain_english= 1
-    contain_username_mentioned = 1
-    contain_retweet = 1
-    least_tweet_per_user = 0
-
-    follower_of = None
-    since = None
-    until = None
-    def __init__(self, since=None, until=None, follower_of=None, 
-            contain_linked_tweet=1, contain_username_mentioned=1, contain_english=1,
-            contain_retweet=1, least_tweet_per_user=0):
-        if not (isinstance(since, datetime.datetime) and isinstance(until, datetime.datetime)):
-            raise Exception('since and until only accept datetime object')
-        self.contain_retweet = contain_retweet
-        self.contain_linked_tweet = contain_linked_tweet
-        self.contain_username_mentioned = contain_username_mentioned
-        self.contain_english = contain_english
-        self.least_tweet_per_user = least_tweet_per_user
-        self.since = since
-        self.until = until
-        self.follower_of = follower_of
-    
-    def add_filter_to_query(self, target_tweet_table, query):
-        if self.since is not None:
-            if self.since >= target_tweet_table.get_maximum_created_at():
-                """ maximum of created time is older than since (minimum of search range > max(table))
-                """
-                return None 
-            query = query.filter(target_tweet_table.created_at > self.since)
-        if self.until is not None:
-            if self.until < target_tweet_table.get_minimum_created_at():
-                """ minimum of created time is older than until (maximum of search range < min(table))
-                """
-                return None
-            query = query.filter(target_tweet_table.created_at < self.until)
-
-        if self.contain_retweet == 0:
-            query = query.filter(target_tweet_table.retweet_owner == None)
-        elif self.contain_retweet == 2:
-            query = query.filter(target_tweet_table.retweet_owner != None)
-
-        if self.contain_username_mentioned == 0:
-            query = query.filter(target_tweet_table.reply_to == None)
-        elif self.contain_username_mentioned == 2:
-            query = query.filter(target_tweet_table.reply_to != None)
-
-        return query
-
-    def get_tweet_list(self, target_tweet_table, session):
-        query = session.query(target_tweet_table)
-        query = self.add_filter_to_query(target_tweet_table, query)
-        if query is None:
-            return None
-        pre_tweets = query.all()
-        print (('GET a tweet set from tweet table %s') % target_tweet_table.__tablename__)
-
-        user_query = session.query(target_tweet_table.user)
-        user_query = self.add_filter_to_query(target_tweet_table, user_query)
-        if user_query is None:
-            """ Useless Routine, but add for safety
-            """
-            return None
-        sub_query_user_of_tweets = user_query.group_by(target_tweet_table.user).subquery()
-        user_info = session.query(User).filter(User.id.in_(sub_query_user_of_tweets)).all()
-
-        print ('GET a user info of tweet owner from user table %s')
-        tweet_count_dict = dict()
-        for item in user_info:
-            tweet_count_dict[item.id] = item.statuses_count
-
-        follower_list = list()
-        if self.follower_of is not None:
-            follower_rows = session.query(Relationship).filter(Relationship.following == self.follower_of).all()
-            for item in follower_rows:
-                follower_list.append(item.follower)
-
-        print ('GET a follower info from relationship table %s')
-        processor = TwitterKoreanProcessor(stemming=False)
-        result = list()
-        for tweet in pre_tweets:
-            tokens = processor.tokenize(tweet.text)
-            pos_set = set([])
-            for token in tokens:
-                pos_set.add(token.pos)
-            if self.contain_english == 0 and 'Noun' not in pos_set:
-                continue
-            elif self.contain_english == 2 and 'Noun' in pos_set:
-                continue
-            if self.contain_linked_tweet == 0 and 'URL' in pos_set:
-                continue
-            elif self.contain_linked_tweet == 2 and 'URL' not in pos_set:
-                continue
-            if self.follower_of is not None and tweet.user not in follower_list:
-                continue
-            if self.least_tweet_per_user != 0:
-                if tweet.user not in tweet_count_dict:
-                    raise Exception('Subquery, query ERROR!')
-                else:
-                    if tweet_count_dict[tweet.user] < self.least_tweet_per_user:
-                        continue
-            result.append(tweet)
-        print ('Finish to make tweet list')
-        return result 
-
-    def make_query(self, session):
-        query = session.query(TweetType)
-        query = query.filter(TweetType.since == self.since)
-        query = query.filter(TweetType.until == self.until)
-        query = query.filter(TweetType.follower_of == self.follower_of)
-        query = query.filter(TweetType.contain_retweet == self.contain_retweet)\
-                       .filter(TweetType.contain_english == self.contain_english)\
-                       .filter(TweetType.contain_username_mentioned == self.contain_username_mentioned)\
-                       .filter(TweetType.contain_linked_tweet == self.contain_linked_tweet)\
-                       .filter(TweetType.least_tweet_per_user == self.least_tweet_per_user)
-        return query 
-
-    def get_type_id(self, session):
-        type_row = self.make_query(session).first()
-        if type_row is None:
-            session.add(self.make_type_data())
-            session.commit()
-            type_row = self.make_query(session).first()
-        return type_row.id
-
-
-    def make_type_data(self):
-        return TweetType(
-                since=self.since, until=self.until, follower_of=self.follower_of,
-                contain_retweet=self.contain_retweet, contain_english=self.contain_english,
-                contain_username_mentioned=self.contain_username_mentioned, contain_linked_tweet=self.contain_linked_tweet,
-                least_tweet_per_user=self.least_tweet_per_user)
-            
-    def __repr__(self): 
-        return ("since : %s, until : %s, follower_of : %s, contain_retweet : %d, contain_english : %d, contain_username_mentioned : %d, contain_linked_tweet : %d, least_tweet_per_user : %d" % (self.since, self.until, self.follower_of, self.contain_retweet, self.contain_english, self.contain_username_mentioned, self.contain_linked_tweet, self.least_tweet_per_user))
-
-class PrintString(object):
-    def print_tokens(self, tokens, end="\n"):
-        """ https://github.com/jaepil/twkorean
-        """
-        if isinstance(tokens, list):
-            print("[", end="")
-        elif isinstance(tokens, tuple):
-            print("(", end="")
-
-        for t in tokens:
-            if t != tokens[-1]:
-                elem_end = ", "
-            else:
-                elem_end = ""
-
-            if isinstance(t, (list, tuple)):
-                self.print_tokens(t, end=elem_end)
-            else:
-                print(t, end=elem_end)
-
-        if isinstance(tokens, list):
-            print("]", end=end)
-        elif isinstance(tokens, tuple):
-            print(")", end=end)
 
 if __name__ == '__main__':
-#    analyze(3146287546)
-#    user_analyze()
 #
 #    korean_analyze(14206146)
-#    export_result_to_csv(6)
-    pass
+#   export_result_to_csv(6) 
+    sess = Session()
+    from support.model import Tweet_335204566_9
+    from sqlalchemy import and_
+    filter_item = list()
+    filter_item.append(Tweet_335204566_9.user.in_([328207123,
+        387754652,
+        459058358,
+        2827044096,
+        2884600289,
+        2996035123,
+        3834891792
+        ]))
+    tweets = produce_analysis_type(16).add_filter_to_query(Tweet_335204566_9, sess.query(Tweet_335204566_9)).filter(and_(*filter_item) if len(filter_item) > 1 else filter_item[0]).all()
+    for item in tweets:
+        print(item.text)
+    sess.close()  

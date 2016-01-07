@@ -205,6 +205,20 @@ class TweetType(Base):
     contain_username_mentioned = Column(Integer, default=1)
     contain_linked_tweet = Column(Integer, default=1)
     least_tweet_per_user = Column(Integer, default=0)
+    user_list_type = Column(Integer, default=None)
+
+class UserList(Base):
+    __tablename__ = 'user_list'
+
+    def __init__(self, user_id, search_type):
+        self.user_id = user_id
+        self.search_type = search_type
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(BigInteger, nullable=False)
+    list_type = Column(Integer, nullable=False)
+    created_time = Column(DateTime, nullable=False, default=datetime.datetime.now())
+
 
 class TweetSearchLog(Base):
     __tablename__ = 'tweet_search_log'

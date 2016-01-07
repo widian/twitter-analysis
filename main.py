@@ -25,6 +25,10 @@ if __name__ == '__main__':
 
     """ """
 
+    """ 레바 """
+    target_id = 155884548
+    """ """
+
     result = sess.query(Relationship).filter(Relationship.following == target_id).all()
     for item in result:
         user = sess.query(User).filter(User.id  == item.follower).first()

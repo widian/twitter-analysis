@@ -43,13 +43,9 @@ def analysis(analysis_type):
     return True
 
 if __name__=='__main__':
-    recollect(10)
-    recollect(11)
-    recollect(13)
-    recollect(14)
-    recollect(15)
-    recollect(16)
-    recollect(17)
+    pass
+#    analysis(analyzer.produce_analysis_type(16))
+#    analysis(analyzer.produce_analysis_type(17))
 
 #    analysis_type = analyzer.AnalysisType( since=datetime.datetime(2015, 11, 1, 0, 0, 0), 
 #                      until=datetime.datetime(2015, 12, 1, 0, 0, 0), 
