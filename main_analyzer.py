@@ -43,9 +43,7 @@ def analysis(analysis_type):
     return True
 
 if __name__=='__main__':
-    pass
-#    analysis(analyzer.produce_analysis_type(16))
-#    analysis(analyzer.produce_analysis_type(17))
+    analysis(analyzer.produce_analysis_type(18))
 
 #    analysis_type = analyzer.AnalysisType( since=datetime.datetime(2015, 11, 1, 0, 0, 0), 
 #                      until=datetime.datetime(2015, 12, 1, 0, 0, 0), 

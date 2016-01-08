@@ -97,7 +97,6 @@ def tweet_reduce(analysis_type, table_list):
         if result is not None:
             tweets += result
 
-
     if type_result is not None:
         """ cached된 typed tweet이 있을 때
         """
@@ -171,7 +170,8 @@ def produce_analysis_type(type_number):
                                  contain_username_mentioned=analysis_type_result.contain_username_mentioned,
                                  contain_english=analysis_type_result.contain_english,
                                  contain_retweet=analysis_type_result.contain_retweet,
-                                 least_tweet_per_user=analysis_type_result.least_tweet_per_user)
+                                 least_tweet_per_user=analysis_type_result.least_tweet_per_user,
+                                 user_list_type=analysis_type_result.user_list_type)
     return analysis_type
 
 def export_result_to_csv(tweet_type):
@@ -196,15 +196,19 @@ if __name__ == '__main__':
     from support.model import Tweet_335204566_9
     from sqlalchemy import and_
     filter_item = list()
-    filter_item.append(Tweet_335204566_9.user.in_([328207123,
+    user_list = [328207123,
         387754652,
         459058358,
         2827044096,
         2884600289,
         2996035123,
         3834891792
-        ]))
-    tweets = produce_analysis_type(16).add_filter_to_query(Tweet_335204566_9, sess.query(Tweet_335204566_9)).filter(and_(*filter_item) if len(filter_item) > 1 else filter_item[0]).all()
+        ]
+    subquery_userlist = sess.query(UserList.user_id).filter(UserList.list_type == 1).subquery()
+
+    filter_item.append(Tweet_335204566_9.user.in_(subquery_userlist))
+    tweets = produce_analysis_type(16).add_filter_to_query(Tweet_335204566_9, sess.query(Tweet_335204566_9)).filter(and_(*filter_item) if len(filter_item) > 1 else filter_item[0]).group_by(Tweet_335204566_9.user).all()
     for item in tweets:
-        print(item.text)
+        print(item.user)
+
     sess.close()  

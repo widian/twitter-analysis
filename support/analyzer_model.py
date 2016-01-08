@@ -41,14 +41,14 @@ class AnalysisType(object):
     contain_username_mentioned = 1
     contain_retweet = 1
     least_tweet_per_user = 0
-    specific_user_list = False
+    user_list_type = 0
 
     follower_of = None
     since = None
     until = None
     def __init__(self, since=None, until=None, follower_of=None, 
             contain_linked_tweet=1, contain_username_mentioned=1, contain_english=1,
-            contain_retweet=1, least_tweet_per_user=0, specific_user_list=None):
+            contain_retweet=1, least_tweet_per_user=0, user_list_type=0):
         if not (isinstance(since, datetime.datetime) and isinstance(until, datetime.datetime)):
             raise Exception('since and until only accept datetime object')
         self.contain_retweet = contain_retweet
@@ -59,7 +59,7 @@ class AnalysisType(object):
         self.since = since
         self.until = until
         self.follower_of = follower_of
-        self.specific_user_list = specific_user_list
+        self.user_list_type = user_list_type 
     
     def add_filter_to_query(self, target_tweet_table, query):
         if self.since is not None:
@@ -84,15 +84,20 @@ class AnalysisType(object):
             query = query.filter(target_tweet_table.reply_to == None)
         elif self.contain_username_mentioned == 2:
             query = query.filter(target_tweet_table.reply_to != None)
-
         return query
 
     def get_tweet_list(self, target_tweet_table, session):
         query = session.query(target_tweet_table)
         query = self.add_filter_to_query(target_tweet_table, query)
-
         if query is None:
             return None
+
+        if self.user_list_type != 0:
+            """ UserList로부터 타겟이 되는 user_id 리스트를 받아서 해당 아이디의 트윗만 수집
+            """
+            subquery_userlist = session.query(UserList.user_id).filter(UserList.list_type == self.user_list_type).subquery()
+            query = query.filter(target_tweet_table.user.in_(subquery_userlist))
+
         pre_tweets = query.all()
         print (('GET a tweet set from tweet table %s') % target_tweet_table.__tablename__)
 
@@ -153,7 +158,8 @@ class AnalysisType(object):
                        .filter(TweetType.contain_english == self.contain_english)\
                        .filter(TweetType.contain_username_mentioned == self.contain_username_mentioned)\
                        .filter(TweetType.contain_linked_tweet == self.contain_linked_tweet)\
-                       .filter(TweetType.least_tweet_per_user == self.least_tweet_per_user)
+                       .filter(TweetType.least_tweet_per_user == self.least_tweet_per_user)\
+                       .filter(TweetType.user_list_type == self.user_list_type)
         return query 
 
     def get_type_id(self, session):
@@ -170,10 +176,11 @@ class AnalysisType(object):
                 since=self.since, until=self.until, follower_of=self.follower_of,
                 contain_retweet=self.contain_retweet, contain_english=self.contain_english,
                 contain_username_mentioned=self.contain_username_mentioned, contain_linked_tweet=self.contain_linked_tweet,
-                least_tweet_per_user=self.least_tweet_per_user)
+                least_tweet_per_user=self.least_tweet_per_user,
+                user_list_type=self.user_list_type)
             
     def __repr__(self): 
-        return ("since : %s, until : %s, follower_of : %s, contain_retweet : %d, contain_english : %d, contain_username_mentioned : %d, contain_linked_tweet : %d, least_tweet_per_user : %d" % (self.since, self.until, self.follower_of, self.contain_retweet, self.contain_english, self.contain_username_mentioned, self.contain_linked_tweet, self.least_tweet_per_user))
+        return ("since : %s, until : %s, follower_of : %s, contain_retweet : %d, contain_english : %d, contain_username_mentioned : %d, contain_linked_tweet : %d, least_tweet_per_user : %d, user_list_type : %d" % (self.since, self.until, self.follower_of, self.contain_retweet, self.contain_english, self.contain_username_mentioned, self.contain_linked_tweet, self.least_tweet_per_user, self.user_list_type))
 
 class UserListType(object):
     #TODO : 아직 미사용중. 코드보강 및 알고리즘 보강이 필요
@@ -187,7 +194,7 @@ class UserListType(object):
     def add_user_list(self, sess, user_list):
         id = self.make_userlist_id(sess)
         for item in user_list:
-            sess.add(UserList(id, item))
+            sess.add(UserList(item, id))
         sess.commit()
 
     def get_user_list(self, sess, list_type):

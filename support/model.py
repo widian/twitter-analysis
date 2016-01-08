@@ -177,7 +177,7 @@ class TweetType(Base):
             since=None, until=None, 
             follower_of=None, 
             contain_retweet=1, contain_english=1, contain_username_mentioned=1,
-            contain_linked_tweet=1, least_tweet_per_user=0):
+            contain_linked_tweet=1, least_tweet_per_user=0, user_list_type=0):
         if since is not None:
             self.since = since
         if until is not None:
@@ -190,6 +190,7 @@ class TweetType(Base):
         self.contain_english = contain_english
         self.contain_retweet = contain_retweet
         self.least_tweet_per_user = least_tweet_per_user
+        self.user_list_type = user_list_type
 
     #TODO : Add more column for 두 어카운트를 동시에 팔로잉하는 계정의 트윗
 
@@ -210,9 +211,9 @@ class TweetType(Base):
 class UserList(Base):
     __tablename__ = 'user_list'
 
-    def __init__(self, user_id, search_type):
+    def __init__(self, user_id, list_type):
         self.user_id = user_id
-        self.search_type = search_type
+        self.list_type = list_type 
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(BigInteger, nullable=False)
