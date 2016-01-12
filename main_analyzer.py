@@ -11,10 +11,12 @@ from support.mysql_support import Session, AnalysisSession
     contain_username_mentioned : 0 - 특정 유저에게 답변한 트윗을 제외, 1 - 특정 유저에게 답변한 트윗을 포함, 2 - 특정 유저에게 답변한 트윗만 검색
     contain_retweet : 0 - 리트윗을 제외, 1 - 리트윗한 트윗을 검색, 2 - 리트윗한 트윗만 검색
     least_tweet_per_user : 특정 유저가 least_tweet_per_user만큼의 트윗을 하지 않았다면 검색하지 않음.
+    user_list_type : 0 - 모든 유저를 검색, not 0 - UserList를 확인해서 user_list_type와 같은 list_type값을 가진 user_id의 리스트에 속하는 유저들의 트윗을 검색
 
     follower_of : follower_of의 follower인 트윗만 검색
     since : since부터의 트윗만 검색
     until : until까지의 트윗만 검색
+
 """
 tweet_list = Tweet_335204566 + Tweet_281916923 + Tweet_44771983
 
@@ -42,6 +44,14 @@ def analysis(analysis_type):
     print "END"
     return True
 
+def make_user_list(user_list):
+    if not isinstance(user_list, list):
+        return None
+    sess = Session()
+    user_list_type = UserListType()
+    return user_list_type.add_user_list(sess, user_list)
+
+    sess.close()
 if __name__=='__main__':
     analysis(analyzer.produce_analysis_type(18))
 

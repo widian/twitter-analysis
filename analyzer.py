@@ -102,20 +102,21 @@ def tweet_reduce(analysis_type, table_list):
         """
         print("DEFINED TYPE")
     else:
+        type_result = tweet_type_query.first()
+        type_id = type_result.id
+
+        #TODO : TweetType에 트윗 검색이 캐시된 시간을 저장해놓는 용도를 추가
+        #       트윗을 재검색할 수 있도록?
+        """ 혹시 있을지 모르는 트윗 검색 캐시를 제거
+        """
+        sess.query(TweetSearchLog).filter(TweetSearchLog.tweet_type == type_id)\
+                                  .delete(synchronize_session='evaluate')
+        for tweet in tweets:
+            tweet_search_log = TweetSearchLog(tweet.id, type_id)
+            sess.add(tweet_search_log)
         tweet_type_data = analysis_type.make_type_data()
         sess.add(tweet_type_data)
         sess.commit()
-
-    #TODO : If already tweet search log cached, pass below steps
-    type_result = tweet_type_query.first()
-    type_id = type_result.id
-    #NOTE : DELETE
-    sess.query(TweetSearchLog).filter(TweetSearchLog.tweet_type == type_id)\
-                              .delete(synchronize_session='evaluate')
-    for tweet in tweets:
-        tweet_search_log = TweetSearchLog(tweet.id, type_id)
-        sess.add(tweet_search_log)
-    sess.commit()
     sess.close()
     return tweets
 
