@@ -2,7 +2,7 @@
 # -*- coding:utf8 -*-
 import datetime, time
 import analyzer
-from support.model import Tweet_335204566, Tweet_281916923, Tweet_44771983
+from support.model import Tweet_335204566, Tweet_281916923, Tweet_44771983, Tweet_155884548
 from support.mysql_support import Session, AnalysisSession
 """ AnalysisType Explanation
 
@@ -18,7 +18,7 @@ from support.mysql_support import Session, AnalysisSession
     until : until까지의 트윗만 검색
 
 """
-tweet_list = Tweet_335204566 + Tweet_281916923 + Tweet_44771983
+tweet_list = Tweet_335204566 + Tweet_281916923 + Tweet_44771983 + Tweet_155884548
 
 def recollect(type_number):
     analysis_type = analyzer.produce_analysis_type(type_number)
@@ -31,12 +31,14 @@ def analysis(analysis_type):
     """ Follower tweets table made order ->
     """
     result = analyzer.tweet_reduce( analysis_type , tweet_list)
+    print "number of tweets : %d" % len(result)
     print time.time() - start, " for get tweet list"
     start = time.time()
+
     print "number of words : %d" % analyzer.analysis_tweets(analysis_type, result)
     print time.time() - start, " for analysis tweet list"
     start = time.time()
-    print "number of tweets : %d" % len(result)
+
     sess = Session()
     analyzer.export_result_to_csv(analysis_type.get_type_id(sess))
     print time.time() - start, " for export result to csv file"
