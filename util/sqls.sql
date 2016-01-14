@@ -231,4 +231,17 @@ WHERE
         WHERE
             word_table.word = '은');
 
+#tweet_search_log로부터 tweet을 불러오는 sql
+#TODO : 여러 가지의 partition으로부터 text를 불러올 수 있게 해야함
+SELECT 
+    *
+FROM
+    tweet_335204566_9
+WHERE
+    tweet_335204566_9.id IN (SELECT 
+            tweet_id
+        FROM
+            twitter.tweet_search_log
+        WHERE
+            tweet_type = 18);
 

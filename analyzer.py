@@ -191,30 +191,43 @@ def export_result_to_csv(tweet_type):
     sess.close()
 
 class SentenceAnalysis(object):
-    pass
-
+    def get_tweet_list(self, target_tweet_table, tweet_type, session):
+        query = session.query(target_tweet_table)
+        subquery_search_log = session.query(TweetSearchLog.tweet_id).filter(TweetSearchLog.tweet_type == tweet_type).subquery()
+        query = query.filter(target_tweet_table.id.in_(subquery_search_log))
+        return query.all()
 
 if __name__ == '__main__':
 #
 #    korean_analyze(14206146)
 #   export_result_to_csv(6) 
-    sess = Session()
-    from support.model import Tweet_335204566_9
-    from sqlalchemy import and_
-    filter_item = list()
-    user_list = [328207123,
-        387754652,
-        459058358,
-        2827044096,
-        2884600289,
-        2996035123,
-        3834891792
-        ]
-    subquery_userlist = sess.query(UserList.user_id).filter(UserList.list_type == 1).subquery()
+    def get_tweetlist_based_on_userlist():
+        sess = Session()
+        from support.model import Tweet_335204566_9
+        from sqlalchemy import and_
+        filter_item = list()
+        user_list = [328207123,
+            387754652,
+            459058358,
+            2827044096,
+            2884600289,
+            2996035123,
+            3834891792
+            ]
+        subquery_userlist = sess.query(UserList.user_id).filter(UserList.list_type == 1).subquery()
 
-    filter_item.append(Tweet_335204566_9.user.in_(subquery_userlist))
-    tweets = produce_analysis_type(16).add_filter_to_query(Tweet_335204566_9, sess.query(Tweet_335204566_9)).filter(and_(*filter_item) if len(filter_item) > 1 else filter_item[0]).group_by(Tweet_335204566_9.user).all()
-    for item in tweets:
-        print(item.user)
+        filter_item.append(Tweet_335204566_9.user.in_(subquery_userlist))
+        tweets = produce_analysis_type(16).add_filter_to_query(Tweet_335204566_9, sess.query(Tweet_335204566_9)).filter(and_(*filter_item) if len(filter_item) > 1 else filter_item[0]).group_by(Tweet_335204566_9.user).all()
+        for item in tweets:
+            print(item.user)
 
-    sess.close()  
+        sess.close()  
+
+    def get_tweetlist_based_on_tweet_search_log():
+        from support.model import Tweet_335204566_9
+        sess = Session()
+        se = SentenceAnalysis()
+        result = se.get_tweet_list(Tweet_335204566_9, 18, sess)
+        for item in result:
+            print(item.text)
+
