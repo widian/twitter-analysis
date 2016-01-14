@@ -55,14 +55,14 @@ def make_user_list(user_list):
 
     sess.close()
 if __name__=='__main__':
-    analysis(analyzer.produce_analysis_type(18))
+#    analysis(analyzer.produce_analysis_type(18))
 
-#    analysis_type = analyzer.AnalysisType( since=datetime.datetime(2015, 11, 1, 0, 0, 0), 
-#                      until=datetime.datetime(2015, 12, 1, 0, 0, 0), 
-#                      follower_of=335204566,
-#                      contain_retweet=0,
-#                      contain_english=0,
-#                      contain_username_mentioned=0,
-#                      contain_linked_tweet=2,
-#                      least_tweet_per_user=200)
-#    analysis(analysis_type)
+    analysis_type = analyzer.AnalysisType( since=datetime.datetime(2015, 11, 1, 0, 0, 0), 
+                      until=datetime.datetime(2015, 12, 1, 0, 0, 0), 
+                      follower_of=155884548,
+                      contain_retweet=0,
+                      contain_english=0,
+                      contain_username_mentioned=0,
+                      contain_linked_tweet=0,
+                      least_tweet_per_user=200)
+    analysis(analysis_type)

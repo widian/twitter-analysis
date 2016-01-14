@@ -336,7 +336,27 @@ class UserFollowerIDs(Crawler):
                 sess.close()
             return result 
 
+#class StatusCrawler(Crawler):
+#    
+#    def __init__(self):
+#        Crawler.__init__(self)
+#        self.process_name = '/statuses/lookup'
+#
+#    def crawling(self, id_list):
+#        statuses = self.api.GetStatusLookup(
+#                id="20, 432656548536401920")
+#        for stat in statuses:
+#            print stat
+#
+#class UserLookupCrawler(Crawler):
+#    def __init__(self):
+#        Crawler.__init__(self)
+#        self.process_name = '/
+
 if __name__ == "__main__":
+#    def statuses_lookup_test():
+#        s = StatusCrawler()
+#        s.crawling('12,412')
     def crawling_tweet_search():
         try:
             ts = TweetSupport()
@@ -459,6 +479,6 @@ if __name__ == "__main__":
 #    korean_test()
 #    crawling_tweet_search()
 #    print UserTimelineCrawler().get_rate_limit_status()
-    UserFollowerIDs().crawling('twit_reva')
+#    UserFollowerIDs().crawling('twit_reva')
 #    UserTimelineCrawler().crawling('deresute_border')
 

@@ -102,6 +102,10 @@ def tweet_reduce(analysis_type, table_list):
         """
         print("DEFINED TYPE")
     else:
+        tweet_type_data = analysis_type.make_type_data()
+        sess.add(tweet_type_data)
+        sess.commit()
+
         type_result = tweet_type_query.first()
         type_id = type_result.id
 
@@ -114,8 +118,6 @@ def tweet_reduce(analysis_type, table_list):
         for tweet in tweets:
             tweet_search_log = TweetSearchLog(tweet.id, type_id)
             sess.add(tweet_search_log)
-        tweet_type_data = analysis_type.make_type_data()
-        sess.add(tweet_type_data)
         sess.commit()
     sess.close()
     return tweets
@@ -187,6 +189,9 @@ def export_result_to_csv(tweet_type):
         f.write(text)
     f.close()
     sess.close()
+
+class SentenceAnalysis(object):
+    pass
 
 
 if __name__ == '__main__':

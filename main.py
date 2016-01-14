@@ -15,7 +15,7 @@ if __name__ == '__main__':
     sess = Session()
     
     """ NC 다이노스 """
-    #target_id = 335204566
+    target_id = 335204566
 
     """ 삼성 라이온즈 """
     #target_id = 281916923
@@ -23,17 +23,15 @@ if __name__ == '__main__':
     """ 기아 타이거즈 """
     #target_id = 44771983
 
-    """ """
-
     """ 레바 """
-    target_id = 155884548
+    #target_id = 155884548
     """ """
 
     result = sess.query(Relationship).filter(Relationship.following == target_id).all()
     for item in result:
         user = sess.query(User).filter(User.id  == item.follower).first()
-        if user is None or user.tweet_collected_date is None:
-            result = timeline_crawler.crawling(user_id=item.follower, since=datetime.date(year=2015, month=7, day=15))
+        if user is None or user.tweet_collected_date is None or user.tweet_collected_date < datetime.datetime.now() - datetime.timedelta(days=14):
+            result = timeline_crawler.crawling(user_id=item.follower, since=datetime.datetime(year=2015, month=12, day=7, hour=1, minute=28, second=36))
             print result, item.follower
             while result is not True:
                 if ErrorNumbers.RATE_LIMIT_ERROR in result:

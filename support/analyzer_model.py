@@ -13,7 +13,7 @@ from support.model import Tweet, User, TweetType, TweetSearchLog, Relationship, 
 from sqlalchemy import desc, and_
 from sqlalchemy.sql import func
 
-import datetime
+import datetime, time
 
 class Word(object):
     word = None
@@ -92,7 +92,8 @@ class AnalysisType(object):
         query = self.add_filter_to_query(target_tweet_table, query)
         if query is None:
             return None
-
+        print('SQL Start')
+        start = time.time()
         if self.user_list_type != 0:
             """ UserList로부터 타겟이 되는 user_id 리스트를 받아서 해당 아이디의 트윗만 수집
             """
@@ -111,7 +112,7 @@ class AnalysisType(object):
         sub_query_user_of_tweets = user_query.group_by(target_tweet_table.user).subquery()
         user_info = session.query(User).filter(User.id.in_(sub_query_user_of_tweets)).all()
 
-        print ('GET a user info of tweet owner from user table %s')
+        print ('GET a user info of tweet owner from user table %s, SQL End : %s sec' % (target_tweet_table, time.time() - start))
         tweet_count_dict = dict()
         for item in user_info:
             tweet_count_dict[item.id] = item.statuses_count
