@@ -191,11 +191,51 @@ def export_result_to_csv(tweet_type):
     sess.close()
 
 class SentenceAnalysis(object):
+
     def get_tweet_list(self, target_tweet_table, tweet_type, session):
         query = session.query(target_tweet_table)
         subquery_search_log = session.query(TweetSearchLog.tweet_id).filter(TweetSearchLog.tweet_type == tweet_type).subquery()
         query = query.filter(target_tweet_table.id.in_(subquery_search_log))
         return query.all()
+
+    def cosine_sentence_similarity(self):
+        """ http://stackoverflow.com/questions/15173225/how-to-calculate-cosine-similarity-given-2-sentence-strings-python
+            cosine similarity with pure python
+        """ 
+        import re, math
+        from collections import Counter
+
+        processor = TwitterKoreanProcessor()
+
+        def get_cosine(vec1, vec2):
+             intersection = set(vec1.keys()) & set(vec2.keys())
+             numerator = sum([vec1[x] * vec2[x] for x in intersection])
+
+             sum1 = sum([vec1[x]**2 for x in vec1.keys()])
+             sum2 = sum([vec2[x]**2 for x in vec2.keys()])
+             denominator = math.sqrt(sum1) * math.sqrt(sum2)
+
+             if not denominator:
+                return 0.0
+             else:
+                return float(numerator) / denominator
+
+        def text_to_vector(text):
+            words = processor.tokenize_to_strings(text)
+            return Counter(words)
+
+        text1 = u"한국어 테스트를 위한 문장입니다"
+        text2 = u"한국어로 테스트를 하는 문장입니다"
+
+        vector1 = text_to_vector(text1)
+        vector2 = text_to_vector(text2)
+
+        print(vector1, vector2)
+
+        cosine = get_cosine(vector1, vector2)
+
+        print( 'Cosine:', cosine )
+
 
 if __name__ == '__main__':
 #
@@ -230,4 +270,10 @@ if __name__ == '__main__':
         result = se.get_tweet_list(Tweet_335204566_9, 18, sess)
         for item in result:
             print(item.text)
+        sess.close()
 
+    def similarity_test():
+        se = SentenceAnalysis()
+        se.cosine_sentence_similarity()
+
+    similarity_test()

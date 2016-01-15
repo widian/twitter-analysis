@@ -244,6 +244,9 @@ class WordTable(Base):
     #TODO : change pos to interger type value, and make pos table to reduce querying weight
     id = Column(Integer, primary_key=True, autoincrement=True)
     word = Column(String(140), nullable=False)
+    """ pos : part-of-speech
+        http://www.cs.cmu.edu/~ark/TweetNLP/#pos
+    """ 
     pos = Column(String(16), nullable=False)
     unknown = Column(Integer, nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.datetime.now())
