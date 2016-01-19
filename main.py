@@ -15,10 +15,10 @@ if __name__ == '__main__':
     sess = Session()
     
     """ NC 다이노스 """
-    target_id = 335204566
+    #target_id = 335204566
 
     """ 삼성 라이온즈 """
-    #target_id = 281916923
+    target_id = 281916923
 
     """ 기아 타이거즈 """
     #target_id = 44771983
@@ -36,7 +36,10 @@ if __name__ == '__main__':
             while result is not True:
                 if ErrorNumbers.RATE_LIMIT_ERROR in result:
                     print 'wait %d seconds' % (result[ErrorNumbers.RATE_LIMIT_ERROR] + 10)
-                    time.sleep( result[ErrorNumbers.RATE_LIMIT_ERROR] + 10)
+                    try:
+                        time.sleep( result[ErrorNumbers.RATE_LIMIT_ERROR] + 10)
+                    except Exception as e:
+                        print result[ErrorNumbers.RATE_LIMIT_ERROR], e
                     result = timeline_crawler.crawling(user_id=item.follower, since=datetime.date(year=2015, month=7, day=15))
                     if user is None or user.screen_name is None:
                         pass

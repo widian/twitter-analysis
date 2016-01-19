@@ -190,6 +190,14 @@ def export_result_to_csv(tweet_type):
     f.close()
     sess.close()
 
+class TextPos(object):
+    text = None
+    order_of_pos = list()
+
+    def __init__(self, text=None, order_of_pos=list()):
+        self.text = text
+        self.order_of_pos = order_of_pos
+
 class SentenceAnalysis(object):
 
     def get_tweet_list(self, target_tweet_table, tweet_type, session):
@@ -230,38 +238,39 @@ class SentenceAnalysis(object):
         vector1 = text_to_vector(text1)
         vector2 = text_to_vector(text2)
 
-        print(vector1, vector2)
-
         cosine = get_cosine(vector1, vector2)
 
         print( 'Cosine:', cosine )
 
+    def pos_similarity(self):
+        pass
+
+def get_tweetlist_based_on_userlist():
+    sess = Session()
+    from support.model import Tweet_335204566_9
+    from sqlalchemy import and_
+    filter_item = list()
+    user_list = [328207123,
+        387754652,
+        459058358,
+        2827044096,
+        2884600289,
+        2996035123,
+        3834891792
+        ]
+    subquery_userlist = sess.query(UserList.user_id).filter(UserList.list_type == 1).subquery()
+
+    filter_item.append(Tweet_335204566_9.user.in_(subquery_userlist))
+    tweets = produce_analysis_type(16).add_filter_to_query(Tweet_335204566_9, sess.query(Tweet_335204566_9)).filter(and_(*filter_item) if len(filter_item) > 1 else filter_item[0]).group_by(Tweet_335204566_9.user).all()
+    for item in tweets:
+        print(item.user)
+
+    sess.close()  
 
 if __name__ == '__main__':
 #
 #    korean_analyze(14206146)
 #   export_result_to_csv(6) 
-    def get_tweetlist_based_on_userlist():
-        sess = Session()
-        from support.model import Tweet_335204566_9
-        from sqlalchemy import and_
-        filter_item = list()
-        user_list = [328207123,
-            387754652,
-            459058358,
-            2827044096,
-            2884600289,
-            2996035123,
-            3834891792
-            ]
-        subquery_userlist = sess.query(UserList.user_id).filter(UserList.list_type == 1).subquery()
-
-        filter_item.append(Tweet_335204566_9.user.in_(subquery_userlist))
-        tweets = produce_analysis_type(16).add_filter_to_query(Tweet_335204566_9, sess.query(Tweet_335204566_9)).filter(and_(*filter_item) if len(filter_item) > 1 else filter_item[0]).group_by(Tweet_335204566_9.user).all()
-        for item in tweets:
-            print(item.user)
-
-        sess.close()  
 
     def get_tweetlist_based_on_tweet_search_log():
         from support.model import Tweet_335204566_9
@@ -276,4 +285,4 @@ if __name__ == '__main__':
         se = SentenceAnalysis()
         se.cosine_sentence_similarity()
 
-    similarity_test()
+    get_tweetlist_based_on_tweet_search_log()

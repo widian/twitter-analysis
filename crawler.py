@@ -348,6 +348,10 @@ class UserFollowerIDs(Crawler):
 #        for stat in statuses:
 #            print stat
 #
+
+#TODO : UserLookupCrawler를 사용해서 유저 타임라인을 긁어오는데 더 효율적으로 작동하도록 수정하기
+#       현재 User정보들은 한 번 등록된 뒤에 수정되지 않기 때문에, User/Show부분과 User/Lookup부분에
+#       해당 정보가 업데이트되도록 수정해야함
 #class UserLookupCrawler(Crawler):
 #    def __init__(self):
 #        Crawler.__init__(self)
