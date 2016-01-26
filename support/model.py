@@ -106,6 +106,60 @@ class User(Base):
     language_type = Column(Integer)
     authorized = Column(Integer, nullable=False, default=AUTHORIZED)
 
+class UserDetail(Base):
+    __tablename__ = 'user_detail'
+
+    #TODO : id를 User의 id와 연결되도록 만들어놓기
+    #       User에 있는 Column은 UserDetail에서 관리하지 않게 하기
+    id = Column(BigInteger, primary_key=True)
+
+    """ Colors """
+    profile_sidebar_fill_color = Column(Integer, nullable=False)
+    profile_sidebar_border_color = Column(Integer, nullable=False)
+    profile_link_color = Column(Integer, nullable=False)
+    profile_text_color = Column(Integer, nullable=False)
+    profile_background_color = Column(Integer, nullable=False)
+
+    """ Booleans """
+    profile_background_tile = Column(Integer, nullable=False)
+    follow_request_sent = Column(Integer, nullable=False)
+    is_translator = Column(Integer, nullable=False)
+    default_profile = Column(Integer, nullable=False)
+    contributors_enabled = Column(Integer, nullable=False)
+    profile_use_background_image = Column(Integer, nullable=False)
+    protected = Column(Integer, nullable=False)
+    geo_enabled = Column(Integer, nullable=False)
+    verified = Column(Integer, nullable=False)
+    notifications = Column(Integer,nullable=False)
+    default_profile_image = Column(Integer, nullable=False)
+    following = Column(Integer, nullable=False)
+    show_all_inline_media = Column(Integer, nullable=False)
+
+    """ Else """
+    profile_image_url = Column(String(140), nullable=False)
+    location = Column(String(80), nullable=False)
+    created_at = Column(DateTime, nullable=False)
+    id_str = Column(String(16), nullable=False)
+    favourites_count = Column(Integer, nullable=False)
+    url = Column(String(140), nullable=False)
+    profile_image_url_https = Column(String(140), nullable=False)
+    utc_offset = Column(Integer, nullable=False)
+    listed_count = Column(Integer, nullable=False)
+    lang = Column(String(3), nullable=False)
+    profile_background_image_url_https = Column(String(140), nullable=False)
+    description = Column(String(256), nullable=False)
+    time_zone = Column(String(40), nullable=False)
+    profile_background_image_url = Column(String(140), nullable=False)
+    friends_count = Column(Integer, nullable=False)
+
+    latest_status_id = Column(BigInteger)
+
+
+    def _color_to_int(self, color_string):
+        """ http://stackoverflow.com/questions/209513/convert-hex-string-to-int-in-python
+        """ 
+        return int(color_string, 16)
+
 class Celebrity(Base):
     __tablename__ = 'celebrity'
 
@@ -347,6 +401,14 @@ class Tweet_281916923_1(TweetBase, Base):
     _MINIMUM_id = 621106918325497856
     _MAXIMUM_created_at = '2015-12-17 07:37:34'
     _MAXIMUM_id = 677392173583601664
+
+class Tweet_281916923_2(TweetBase, Base):
+    __tablename__ = 'tweet_281916923_2'
+
+    _MINIMUM_created_at = '2015-12-17 07:38:02'
+    _MINIMUM_id = 677392293364563968
+    _MAXIMUM_created_at = '2016-01-20 21:37:01'
+    _MAXIMUM_id = 689924617486471168
 
 class Tweet_44771983_1(TweetBase, Base):
     __tablename__ = 'tweet_44771983_1'
