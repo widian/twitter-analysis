@@ -193,7 +193,12 @@ class UserTimelineCrawler(Crawler):
                 statuses = self.api.GetUserTimeline(
                         user_id=user_id,
                         count=200,
-                        max_id=self.minimum_max_id)
+                        max_id=self.minimum_max_id,
+                        since_id=kwargs['since_id'] if 'since_id' in kwargs else None,
+                        include_rts=kwargs['include_rts'] if 'include_rts' in kwargs else None,
+                        trim_user=kwargs['trim_user'] if 'trim_user' in kwargs else None,
+                        exclude_replies=kwargs['exclude_replies'] if 'exclude_replies' in kwargs else None
+                )
                 self.minimum_max_id = None
                 if cached_maximum_id is None:
                     cached_row = sess.query(func.max(Tweet.id)).filter(Tweet.user == user_id).first()
