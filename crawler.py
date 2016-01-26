@@ -148,7 +148,8 @@ class Crawler(object):
                     """
                     ts = TweetSupport()
                     api = ts.get_api()
-                    user = api.GetUser(screen_name=screen_name, user_id=user_id)
+                    user = api.GetUser(screen_name=screen_name, user_id=user_id,
+                                        include_entities=kwargs['include_entities'] if 'include_entities' in kwargs else None)
                     user_chunk = User(
                         user.id,
                         user.name,
@@ -315,7 +316,12 @@ class UserFollowerIDs(Crawler):
         try:
             ts = TweetSupport()
             api = ts.get_api()
-            follower_ids = api.GetFollowerIDs(user_id=user_id)
+            follower_ids = api.GetFollowerIDs(
+                    user_id=user_id,
+                    cursor=kwargs['cursor'] if 'cursor' in kwargs else None,
+                    stringify_ids=kwargs['stringify_ids'] if 'stringify_ids' in kwargs else None,
+                    count=kwargs['count'] if 'count' in kwargs else None,
+                    total_count=kwargs['total_count'] if 'total_count' in kwargs else None)
             sess = Session()
             remained = len(follower_ids)
             for id in follower_ids:
