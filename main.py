@@ -45,7 +45,7 @@ if __name__ == '__main__':
                         time.sleep( result[ErrorNumbers.RATE_LIMIT_ERROR] + 10)
                     except Exception as e:
                         print result[ErrorNumbers.RATE_LIMIT_ERROR], e
-                        result = get_result(timeline_crawler, item.follower)
+                    result = get_result(timeline_crawler, item.follower)
                     if user is None or user.screen_name is None:
                         pass
                     else:
