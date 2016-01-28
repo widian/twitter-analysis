@@ -131,3 +131,9 @@ crawling_tweet_search()
 #    UserFollowerIDs().crawling('twit_reva')
 #    UserTimelineCrawler().crawling('deresute_border')
 
+def make_table_create_query():
+    from support.model import UserDetail
+    from sqlalchemy.schema import CreateTable
+    from support.mysql_support import engine
+    print CreateTable(UserDetail.__table__).compile(engine)
+

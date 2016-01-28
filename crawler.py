@@ -9,7 +9,7 @@ from twitter import TwitterError
 
 from support.tweet_support import TweetSupport, TweetErrorHandler, ErrorNumbers
 from support.mysql_support import Session
-from support.model import RateLimit, User, Tweet, ErrorTweet, Relationship
+from support.model import RateLimit, User, Tweet, ErrorTweet, Relationship, UserDetail
 
 from sqlalchemy.exc import DataError
 from sqlalchemy import func, or_
@@ -124,55 +124,72 @@ class Crawler(object):
         dt = datetime.datetime(*time_tuple[:6])
         return dt - datetime.timedelta(seconds=time_tuple[-1])
 
+    def get_user_info(self, screen_name=None, user_id=None, **kwargs):
+        """ 만약 해당 유저정보가 이미 저장되어있다면
+        """
+        sess = Session()
+        exist = sess.query(User).filter(or_(User.screen_name == screen_name,
+                                            User.id == user_id)).first()
+
+        #TODO : authorized값을 없애고 protected로 교체해야 함.
+        if exist:
+            """ 세션을 닫고 해당 유저의 id를 추가로 전달. screen_name을 받든, user_id를 받든
+                crawling 함수에는 user_id를 전달함
+            """
+            sess.close()
+            return exist.id, exist.authorized
+        else:
+            """ Twitter로부터 유저정보를 받은 뒤 DB에 저장.
+                NOTE: 에러 처리 파트를 함수 바깥으로 빼놓고 처리하기.
+            """
+            ts = TweetSupport()
+            api = ts.get_api()
+            user = api.GetUser(screen_name=screen_name, user_id=user_id,
+                                include_entities=kwargs['include_entities'] if 'include_entities' in kwargs else None)
+            user_chunk = User(
+                user.id,
+                user.name,
+                user.screen_name,
+                user.statuses_count,
+                user.followers_count)
+            sess.add(user_chunk)
+            sess.commit()
+            sess.close()
+            return user.id, 
+
+    #TODO : 유저의 가장 최근 status 정보를 받아서 func에 정보를 전달하기
     def user_info( func ):
         """ 특정 crawling이 어떤 user대상이라면, 미리 user정보를 받아오기 위한
             decorator함수. 
         """
-        def get_user_info(self, screen_name=None, user_id=None, **kwargs):
-            #TODO : 만약 kwargs에 since가 있다면, 유저의 가장 최근 status 정보를 받아서 func에 정보를 전달하기
+        def db_user(self, screen_name=None, user_id=None, **kwargs):
             process_name = "/users/show/:id"
-            sess = Session()
-            """ 만약 해당 유저정보가 이미 저장되어있다면
-            """
-            exist = sess.query(User).filter(or_(User.screen_name == screen_name,
-                                                User.id == user_id)).first()
-            if exist:
-                """ 세션을 닫고 해당 유저의 id를 추가로 전달. screen_name을 받든, user_id를 받든
-                    crawling 함수에는 user_id를 전달함
+            try:
+                result = self.get_user_info(screen_name=screen_name, user_id=user_id, **kwargs)
+                if len(result) > 1:
+                    return func(self, result[0], authorized=result[1], **kwargs)
+                else:
+                    return func(self, result[0], **kwargs)
+            except TwitterError as e:
+                """ Error처리는 다른 함수와 동일
                 """
+                sess = Session()
+                t = TweetErrorHandler(e)
+                t.add_handler(ErrorNumbers.RATE_LIMIT_ERROR, self.rate_limit_handler)
+                result = t.invoke(process_name=process_name)
+                sess.commit()
                 sess.close()
-                return func(self, exist.id, authorized=exist.authorized, **kwargs)
-            else:
-                try:
-                    """ Twitter로부터 유저정보를 받은 뒤 DB에 저장.
-                    """
-                    ts = TweetSupport()
-                    api = ts.get_api()
-                    user = api.GetUser(screen_name=screen_name, user_id=user_id,
-                                        include_entities=kwargs['include_entities'] if 'include_entities' in kwargs else None)
-                    user_chunk = User(
-                        user.id,
-                        user.name,
-                        user.screen_name,
-                        user.statuses_count,
-                        user.followers_count)
-                    sess.add(user_chunk)
-                    sess.commit()
-                    sess.close()
-                    return func(self, user.id, **kwargs)
-                except TwitterError as e:
-                    """ Error처리는 다른 함수와 동일
-                    """
-                    t = TweetErrorHandler(e)
-                    t.add_handler(ErrorNumbers.RATE_LIMIT_ERROR, self.rate_limit_handler)
-                    result = t.invoke(process_name=process_name)
-                    if sess is not None:
-                        sess.commit()
-                        sess.close()
-                    return result 
-        return get_user_info
+                return result 
+        return db_user
     user_info = staticmethod(user_info)
    
+    def user_list_info( func ):
+        def get_user_list_info(self, listof_screen_name=None, listof_user_id=None, **kwargs):
+            #TODO : 유저아이디 리스트로부터 db에 유저아이디를 넣는 작업 완성하기.
+            return func(self, user_list, **kwargs)
+        return get_user_list_info
+    user_list_info = staticmethod(user_list_info)
+
 class UserTimelineCrawler(Crawler):
     minimum_max_id = None
     def __init__(self):
@@ -232,7 +249,7 @@ class UserTimelineCrawler(Crawler):
                         sess.add(tweet_chunk)
                     """ print tweet search result (Unnecessary)
                     """
-                    tweet_text = ('%s %s @%s tweeted: %s' % (tweet.id, tweet.created_at, tweet.GetUser().screen_name, tweet.text))
+                    tweet_text = ('%s %s @%s tweeted: %s' % (tweet.id, tweet.created_at, tweet.user.screen_name, tweet.text))
                 if passed_since:
                     break
 
@@ -367,17 +384,24 @@ class UserLookupCrawler(Crawler):
     def __init__(self):
         Crawler.__init__(self)
         self.process_name = '/statuses/lookup'
+    
+    #TODO : user_list에 있는 값을 체크해서 user에 없는 값이라면 user_info를 수집하도록 추가
 
-    def crawling(self, user_list, **kwargs):
+    def crawling(self, listof_user_id, **kwargs):
         sess = None
         try:
             ts = TweetSupport()
             api = ts.get_api()
             user_list = api.UsersLookup(
-                    user_id=user_list,
+                    user_id=listof_user_id,
                     include_entities=kwargs['include_entities'] if 'include_entities' in kwargs else None)
+            sess = Session()
             for item in user_list:
-                print item
+                print dir(item)
+                user_chunk = UserDetail(item, self.to_datetime(item.created_at))
+                sess.add(user_chunk)
+                #TODO : User 테이블을 업데이트하기
+            sess.commit()
             sess = Session()
 
             sess.close()
@@ -391,6 +415,8 @@ class UserLookupCrawler(Crawler):
             return result
 
 if __name__ == "__main__":
+#    t = UserTimelineCrawler()
+#    t.crawling(user_id=214444654, since_id=680056873668620289)
     u = UserLookupCrawler()
-    u.crawling([20,44771983, 155884548])
-    
+    u.crawling(listof_user_id=[20,44771983, 155884548])
+    pass

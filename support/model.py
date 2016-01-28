@@ -105,48 +105,83 @@ class User(Base):
     created_date = Column(DateTime, nullable=False, default=datetime.datetime.now())
     language_type = Column(Integer)
     authorized = Column(Integer, nullable=False, default=AUTHORIZED)
+    protected = Column(Integer, nullable=False, default=0)
 
 class UserDetail(Base):
     __tablename__ = 'user_detail'
 
     #TODO : id를 User의 id와 연결되도록 만들어놓기
     #       User에 있는 Column은 UserDetail에서 관리하지 않게 하기
-    id = Column(BigInteger, primary_key=True)
+
+    def __init__(self, user, created_at):
+        self.id = user.id
+
+        """ Colors """
+        self.profile_sidebar_fill_color = self._color_to_int(user.profile_sidebar_fill_color)
+        self.profile_link_color = self._color_to_int(user.profile_link_color)
+        self.profile_text_color = self._color_to_int(user.profile_text_color)
+        self.profile_background_color = self._color_to_int(user.profile_background_color)
+
+        """ Booleans """
+        self.profile_background_tile = user.profile_background_tile
+        self.default_profile = user.default_profile
+        self.contributors_enabled = user.contributors_enabled
+        self.protected = user.protected
+        self.geo_enabled = user.geo_enabled
+        self.verified = user.verified
+        self.notifications = user.notifications
+        self.default_profile_image = user.default_profile_image
+
+        """ Else """
+        self.profile_image_url = user.profile_image_url
+        self.location = user.location
+        self.favourites_count = user.favourites_count
+        self.url = user.url
+        self.utc_offset = user.utc_offset
+        self.listed_count = user.listed_count
+        self.lang = user.lang
+        self.description = user.description
+        self.time_zone = user.time_zone
+        self.profile_background_image_url = user.profile_background_image_url
+        self.friends_count = user.friends_count
+
+        if user.status is not None:
+            self.latest_status_id = user.status.id
+        else:
+            self.latest_status_id = None
+
+        self.created_at = created_at
+
+    id = Column(BigInteger, ForeignKey('user.id'), primary_key=True)
+    user = relationship("User")
 
     """ Colors """
-    profile_sidebar_fill_color = Column(Integer, nullable=False)
-    profile_sidebar_border_color = Column(Integer, nullable=False)
-    profile_link_color = Column(Integer, nullable=False)
-    profile_text_color = Column(Integer, nullable=False)
-    profile_background_color = Column(Integer, nullable=False)
+    profile_sidebar_fill_color = Column(Integer)
+    profile_sidebar_border_color = Column(Integer)
+    profile_link_color = Column(Integer)
+    profile_text_color = Column(Integer)
+    profile_background_color = Column(Integer)
 
     """ Booleans """
     profile_background_tile = Column(Integer, nullable=False)
-    follow_request_sent = Column(Integer, nullable=False)
-    is_translator = Column(Integer, nullable=False)
+    
     default_profile = Column(Integer, nullable=False)
     contributors_enabled = Column(Integer, nullable=False)
-    profile_use_background_image = Column(Integer, nullable=False)
     protected = Column(Integer, nullable=False)
     geo_enabled = Column(Integer, nullable=False)
     verified = Column(Integer, nullable=False)
     notifications = Column(Integer,nullable=False)
     default_profile_image = Column(Integer, nullable=False)
-    following = Column(Integer, nullable=False)
-    show_all_inline_media = Column(Integer, nullable=False)
 
     """ Else """
     profile_image_url = Column(String(140), nullable=False)
     location = Column(String(80), nullable=False)
     created_at = Column(DateTime, nullable=False)
-    id_str = Column(String(16), nullable=False)
     favourites_count = Column(Integer, nullable=False)
     url = Column(String(140), nullable=False)
-    profile_image_url_https = Column(String(140), nullable=False)
     utc_offset = Column(Integer, nullable=False)
     listed_count = Column(Integer, nullable=False)
     lang = Column(String(3), nullable=False)
-    profile_background_image_url_https = Column(String(140), nullable=False)
     description = Column(String(256), nullable=False)
     time_zone = Column(String(40), nullable=False)
     profile_background_image_url = Column(String(140), nullable=False)
@@ -154,11 +189,15 @@ class UserDetail(Base):
 
     latest_status_id = Column(BigInteger)
 
-
     def _color_to_int(self, color_string):
         """ http://stackoverflow.com/questions/209513/convert-hex-string-to-int-in-python
         """ 
         return int(color_string, 16)
+
+    def color_to_string(self, color_int):
+        """ http://stackoverflow.com/questions/16414559/trying-to-use-hex-without-0x
+        """ 
+        return "{:06X}".format(color_int)
 
 class Celebrity(Base):
     __tablename__ = 'celebrity'
@@ -537,5 +576,4 @@ Tweet_155884548.append(Tweet_155884548_10)
 
 
 if __name__ == '__main__':
-    datetime.datetime.strptime("2015-07-15 13:29:03", '%Y-%m-%d %H:%M:%S')
-    print datetime.date(year=1970, month=1, day=1)
+    pass
