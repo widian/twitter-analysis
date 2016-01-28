@@ -185,7 +185,28 @@ class Crawler(object):
    
     def user_list_info( func ):
         def get_user_list_info(self, listof_screen_name=None, listof_user_id=None, **kwargs):
-            #TODO : 유저아이디 리스트로부터 db에 유저아이디를 넣는 작업 완성하기.
+            try:
+                user_list = list()
+                if listof_screen_name is None:
+                    for item in listof_user_id:
+                        user_id = self.get_user_info(user_id=item)[0]
+                        user_list.append(user_id)
+                elif listof_user_id is None:
+                    raise Exception('Unknown Input')
+                else:
+                    for item in listof_screen_name:
+                        user_id = self.get_user_info(screen_name=item)[0]
+                        user_list.append(user_id)
+            except TwitterError as e:
+                """ Error처리는 다른 함수와 동일
+                """
+                sess = Session()
+                t = TweetErrorHandler(e)
+                t.add_handler(ErrorNumbers.RATE_LIMIT_ERROR, self.rate_limit_handler)
+                result = t.invoke(process_name=process_name)
+                sess.commit()
+                sess.close()
+                return result 
             return func(self, user_list, **kwargs)
         return get_user_list_info
     user_list_info = staticmethod(user_list_info)
@@ -386,7 +407,7 @@ class UserLookupCrawler(Crawler):
         self.process_name = '/statuses/lookup'
     
     #TODO : user_list에 있는 값을 체크해서 user에 없는 값이라면 user_info를 수집하도록 추가
-
+    @Crawler.user_list_info
     def crawling(self, listof_user_id, **kwargs):
         sess = None
         try:
@@ -397,7 +418,6 @@ class UserLookupCrawler(Crawler):
                     include_entities=kwargs['include_entities'] if 'include_entities' in kwargs else None)
             sess = Session()
             for item in user_list:
-                print dir(item)
                 user_chunk = UserDetail(item, self.to_datetime(item.created_at))
                 sess.add(user_chunk)
                 #TODO : User 테이블을 업데이트하기
@@ -419,4 +439,3 @@ if __name__ == "__main__":
 #    t.crawling(user_id=214444654, since_id=680056873668620289)
     u = UserLookupCrawler()
     u.crawling(listof_user_id=[20,44771983, 155884548])
-    pass
