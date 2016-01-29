@@ -4,14 +4,13 @@
 import time, datetime
 from twitter import Api, TwitterError
 
-from crawler import UserTimelineCrawler
+from crawler import UserTimelineCrawler, UserLookupCrawler
 from support.mysql_support import Session
-from support.model import RateLimit, Relationship, User
+from support.model import RateLimit, Relationship, User, UserDetail
 from support.tweet_support import ErrorNumbers
 
-if __name__ == '__main__':
+def timeline_crawler():
     timeline_crawler = UserTimelineCrawler()
-    GetSleepTime = Api().GetSleepTime
     sess = Session()
     
     """ NC 다이노스 """
@@ -57,5 +56,5 @@ if __name__ == '__main__':
             print 'pass ', user.screen_name
             continue
 
-    #timeline_crawler.crawling(target_screen_name)
-    #print timeline_crawler.get_rate_limit_status()
+if __name__ == '__main__':
+    timeline_crawler()

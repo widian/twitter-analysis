@@ -2,7 +2,7 @@
 # -*- coding:utf8 -*-
 
 import datetime
-from sqlalchemy import Integer, String, BigInteger, Column, DateTime, Index
+from sqlalchemy import Integer, String, BigInteger, Column, DateTime, Index, Unicode
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
@@ -114,7 +114,64 @@ class UserDetail(Base):
     #       User에 있는 Column은 UserDetail에서 관리하지 않게 하기
 
     def __init__(self, user, created_at):
+        self.update(user, created_at)
+
+    id = Column(BigInteger, ForeignKey('user.id'), primary_key=True)
+
+    user = relationship("User")
+
+    """ Colors """
+    profile_sidebar_fill_color = Column(Integer)
+    profile_sidebar_border_color = Column(Integer)
+    profile_link_color = Column(Integer)
+    profile_text_color = Column(Integer)
+    profile_background_color = Column(Integer)
+
+    """ Booleans """
+    profile_background_tile = Column(Integer, nullable=False)
+    
+    default_profile = Column(Integer, nullable=False)
+    contributors_enabled = Column(Integer, nullable=False)
+    protected = Column(Integer, nullable=False)
+    geo_enabled = Column(Integer, nullable=False)
+    verified = Column(Integer, nullable=False)
+    notifications = Column(Integer,nullable=False)
+    default_profile_image = Column(Integer, nullable=False)
+
+    """ Else """
+    """ http://stackoverflow.com/questions/5735242/proper-way-to-insert-strings-to-a-sqlalchemy-unicode-column
+        Change String columns to Unicode columns
+    """
+    profile_image_url = Column(Unicode(140), nullable=False)
+    location = Column(Unicode(80), nullable=False)
+    created_at = Column(DateTime, nullable=False)
+    favourites_count = Column(Integer, nullable=False)
+    url = Column(Unicode(140))
+    utc_offset = Column(Integer)
+    listed_count = Column(Integer, nullable=False)
+    lang = Column(Unicode(8), nullable=False)
+    description = Column(Unicode(256), nullable=False)
+    time_zone = Column(Unicode(40))
+    profile_background_image_url = Column(Unicode(140))
+    friends_count = Column(Integer, nullable=False)
+
+    latest_status_id = Column(BigInteger)
+    updated_time = Column(DateTime, nullable=False, default=datetime.datetime.now())
+    created_time = Column(DateTime, nullable=False, default=datetime.datetime.now())
+
+    def _color_to_int(self, color_string):
+        """ http://stackoverflow.com/questions/209513/convert-hex-string-to-int-in-python
+        """ 
+        return int(color_string, 16)
+
+    def color_to_string(self, color_int):
+        """ http://stackoverflow.com/questions/16414559/trying-to-use-hex-without-0x
+        """ 
+        return "{:06X}".format(color_int)
+
+    def update(self, user, created_at):
         self.id = user.id
+        self.id_constraint = user.id
 
         """ Colors """
         self.profile_sidebar_fill_color = self._color_to_int(user.profile_sidebar_fill_color)
@@ -151,53 +208,9 @@ class UserDetail(Base):
             self.latest_status_id = None
 
         self.created_at = created_at
+        self.updated_time = datetime.datetime.now()
 
-    id = Column(BigInteger, ForeignKey('user.id'), primary_key=True)
-    user = relationship("User")
 
-    """ Colors """
-    profile_sidebar_fill_color = Column(Integer)
-    profile_sidebar_border_color = Column(Integer)
-    profile_link_color = Column(Integer)
-    profile_text_color = Column(Integer)
-    profile_background_color = Column(Integer)
-
-    """ Booleans """
-    profile_background_tile = Column(Integer, nullable=False)
-    
-    default_profile = Column(Integer, nullable=False)
-    contributors_enabled = Column(Integer, nullable=False)
-    protected = Column(Integer, nullable=False)
-    geo_enabled = Column(Integer, nullable=False)
-    verified = Column(Integer, nullable=False)
-    notifications = Column(Integer,nullable=False)
-    default_profile_image = Column(Integer, nullable=False)
-
-    """ Else """
-    profile_image_url = Column(String(140), nullable=False)
-    location = Column(String(80), nullable=False)
-    created_at = Column(DateTime, nullable=False)
-    favourites_count = Column(Integer, nullable=False)
-    url = Column(String(140), nullable=False)
-    utc_offset = Column(Integer, nullable=False)
-    listed_count = Column(Integer, nullable=False)
-    lang = Column(String(3), nullable=False)
-    description = Column(String(256), nullable=False)
-    time_zone = Column(String(40), nullable=False)
-    profile_background_image_url = Column(String(140), nullable=False)
-    friends_count = Column(Integer, nullable=False)
-
-    latest_status_id = Column(BigInteger)
-
-    def _color_to_int(self, color_string):
-        """ http://stackoverflow.com/questions/209513/convert-hex-string-to-int-in-python
-        """ 
-        return int(color_string, 16)
-
-    def color_to_string(self, color_int):
-        """ http://stackoverflow.com/questions/16414559/trying-to-use-hex-without-0x
-        """ 
-        return "{:06X}".format(color_int)
 
 class Celebrity(Base):
     __tablename__ = 'celebrity'

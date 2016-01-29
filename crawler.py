@@ -408,7 +408,7 @@ class UserLookupCrawler(Crawler):
     
     #TODO : user_list에 있는 값을 체크해서 user에 없는 값이라면 user_info를 수집하도록 추가
     @Crawler.user_list_info
-    def crawling(self, listof_user_id, **kwargs):
+    def crawling(self, listof_user_id, update=False, **kwargs):
         sess = None
         try:
             ts = TweetSupport()
@@ -418,13 +418,21 @@ class UserLookupCrawler(Crawler):
                     include_entities=kwargs['include_entities'] if 'include_entities' in kwargs else None)
             sess = Session()
             for item in user_list:
-                user_chunk = UserDetail(item, self.to_datetime(item.created_at))
-                sess.add(user_chunk)
-                #TODO : User 테이블을 업데이트하기
+                if update:
+                    row = sess.query(UserDetail).filter(UserDetail.id == item.id).first()
+                    if row is None:
+                        user_chunk = UserDetail(item, self.to_datetime(item.created_at))
+                        sess.add(user_chunk)
+                    else:
+                        row.update(item, self.to_datetime(item.created_at))
+                else:
+                    user_chunk = UserDetail(item, self.to_datetime(item.created_at))
+                    sess.add(user_chunk)
             sess.commit()
-            sess = Session()
 
             sess.close()
+            return True
+
         except TwitterError as e:
             t = TweetErrorHandler(e)
             t.add_handler(ErrorNumbers.RATE_LIMIT_ERROR, self.rate_limit_handler)
@@ -433,9 +441,9 @@ class UserLookupCrawler(Crawler):
                 sess.commit()
                 sess.close()
             return result
-
+ 
 if __name__ == "__main__":
 #    t = UserTimelineCrawler()
 #    t.crawling(user_id=214444654, since_id=680056873668620289)
     u = UserLookupCrawler()
-    u.crawling(listof_user_id=[20,44771983, 155884548])
+    u.crawling(listof_user_id=[20,44771983, 155884548], update=True)

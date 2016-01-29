@@ -126,14 +126,17 @@ def timeline_crawling_too_long_tweet_handler():
     sess.close()
 #    timeline_crawling_too_long_tweet_handler()
 #    korean_test()
-crawling_tweet_search()
+#    crawling_tweet_search()
 #    print UserTimelineCrawler().get_rate_limit_status()
 #    UserFollowerIDs().crawling('twit_reva')
 #    UserTimelineCrawler().crawling('deresute_border')
 
 def make_table_create_query():
+    """ http://stackoverflow.com/questions/2128717/sqlalchemy-printing-raw-sql-from-create
+    """ 
     from support.model import UserDetail
     from sqlalchemy.schema import CreateTable
     from support.mysql_support import engine
     print CreateTable(UserDetail.__table__).compile(engine)
 
+make_table_create_query()
