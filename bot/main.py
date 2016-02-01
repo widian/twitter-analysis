@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 # -*- coding:utf8 -*-
 
+""" path hack : http://stackoverflow.com/questions/6323860/sibling-package-imports
+"""
+import sys; import os
+sys.path.insert(0, os.path.abspath('..'))
+
 import time, datetime
 from twitter import Api, TwitterError
 
@@ -27,6 +32,7 @@ def timeline_crawler():
     """ """
     
     def get_result(timeline_crawler, follower):
+    #TODO : 각각의 horizontal partition에 대해 get_result부분이 변할 수 있도록 해야함. since_id 혹은 since를 외부 테이블 정보로부터 받아올 수 있도록
         return timeline_crawler.crawling(user_id=follower, since_id=680056873668620289)
     #    return timeline_crawler.crawling(user_id=follower, since=datetime.datetime(year=2015, month=12, day=7, hour=1, minute=28, second=36))
 
@@ -49,6 +55,7 @@ def timeline_crawler():
                         pass
                     else:
                         print 'pass ', user.screen_name
+                #TODO : Suspended error handling을 추가해야함
                 else:
                     print "UNKNOWN ERROR "
                     break

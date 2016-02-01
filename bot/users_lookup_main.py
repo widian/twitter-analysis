@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 # -*- coding:utf8 -*-
 
+""" path hack : http://stackoverflow.com/questions/6323860/sibling-package-imports
+"""
+import sys; import os
+sys.path.insert(0, os.path.abspath('..'))
+
 import time, datetime
 from twitter import Api, TwitterError
 
@@ -21,13 +26,15 @@ def users_lookup_crawler():
     for item in query_result:
         id_list.append( item[0] )
 
-    #TODO : target_id_list를 100개 씩 잘라서 넣기.
     def get_result(userdetail_crawler, target_id_list):
         return userdetail_crawler.crawling(listof_user_id=target_id_list)
 
     while len(id_list) != 0:
+        """ id_list를 받은 뒤, 맨 앞부터 100개씩 잘라냅니다.
+        """
         target_id_list = id_list[:100]
         del(id_list[:100])
+
         result = get_result(userdetail_crawler, target_id_list)
         print "Lookup %s ~ %s" % (target_id_list[0], target_id_list[-1])
         while result is not True:
@@ -40,6 +47,7 @@ def users_lookup_crawler():
                 result = get_result(userdetail_crawler, target_id_list)
                 print "Lookup %s ~ %s" % (target_id_list[0], target_id_list[-1])
             else:
+                #TODO : 대개 요청을 했는데, 정보가 안넘어오면 이 위치에서 어떤 에러가 발생하는듯
                 print "UNKNOWN ERROR "
                 break
     sess.close()

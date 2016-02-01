@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 # -*- coding:utf8 -*-
+""" path hack : http://stackoverflow.com/questions/6323860/sibling-package-imports
+"""
+import sys; import os
+sys.path.insert(0, os.path.abspath('..'))
+
 import datetime, time
 import analyzer
 from support.model import Tweet_335204566, Tweet_281916923, Tweet_44771983, Tweet_155884548
