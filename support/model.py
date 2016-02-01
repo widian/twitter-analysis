@@ -135,14 +135,14 @@ class UserDetail(Base):
     protected = Column(Integer, nullable=False)
     geo_enabled = Column(Integer, nullable=False)
     verified = Column(Integer, nullable=False)
-    notifications = Column(Integer,nullable=False)
+    notifications = Column(Integer)
     default_profile_image = Column(Integer, nullable=False)
 
     """ Else """
     """ http://stackoverflow.com/questions/5735242/proper-way-to-insert-strings-to-a-sqlalchemy-unicode-column
         Change String columns to Unicode columns
     """
-    profile_image_url = Column(Unicode(140), nullable=False)
+    profile_image_url = Column(Unicode(256), nullable=False)
     location = Column(Unicode(80), nullable=False)
     created_at = Column(DateTime, nullable=False)
     favourites_count = Column(Integer, nullable=False)
@@ -152,7 +152,7 @@ class UserDetail(Base):
     lang = Column(Unicode(8), nullable=False)
     description = Column(Unicode(256), nullable=False)
     time_zone = Column(Unicode(40))
-    profile_background_image_url = Column(Unicode(140))
+    profile_background_image_url = Column(Unicode(256))
     friends_count = Column(Integer, nullable=False)
 
     latest_status_id = Column(BigInteger)
