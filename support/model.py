@@ -95,23 +95,34 @@ class User(Base):
         self.screen_name = screen_name
         self.statuses_count = statuses_count
         self.follower_count = follower_count
+        self.updated_date = datetime.datetime.now()
 
     id = Column(BigInteger, primary_key=True)
-    name = Column(String(21), nullable=False)
-    screen_name = Column(String(16), unique=True, nullable=False)
+    name = Column(Unicode(21), nullable=False)
+    screen_name = Column(Unicode(16), unique=True, nullable=False)
     statuses_count = Column(Integer, nullable=False)
     follower_count = Column(Integer, nullable=False)
     tweet_collected_date = Column(DateTime)
+    updated_date = Column(DateTime, nullable=False, default=datetime.datetime.now())
     created_date = Column(DateTime, nullable=False, default=datetime.datetime.now())
     language_type = Column(Integer)
     authorized = Column(Integer, nullable=False, default=AUTHORIZED)
     protected = Column(Integer, nullable=False, default=0)
 
+    def update(self, user):
+        self.id = user.id
+        self.name = user.name
+        self.screen_name = user.screen_name
+        self.statuses_count = user.statuses_count
+        self.follower_count = user.followers_count
+        self.updated_date = datetime.datetime.now()
+        self.protected = user.protected
+
 class UserDetail(Base):
     __tablename__ = 'user_detail'
 
-    #TODO : id를 User의 id와 연결되도록 만들어놓기
-    #       User에 있는 Column은 UserDetail에서 관리하지 않게 하기
+    #TODO : User에 있는 Column은 UserDetail에서 관리하지 않게 하기
+    #NOTE : 그냥 UserDetail이 User에 있는 정보를 관리하도록할까. User의 정보는 업데이트 되고 있지 않기 때문에
 
     def __init__(self, user, created_at):
         self.update(user, created_at)
@@ -224,19 +235,8 @@ class Celebrity(Base):
     #TODO : Make relationship with User. Use User information
     #TODO : Make relationship with CelebrityType. Use Celebrity Type information
     id = Column(BigInteger, primary_key=True)
-    celebrity_type = Column(Integer, nullable=False)
-
-class CelebrityType(Base):
-    __tablename__ = 'celebrity_type'
+    user_id = Column(Integer, nullable=False)
     
-    def __init__(self, celebrity_type, type_name):
-        #NOTE : NOT IMPLEMENTED IN DATABASE
-        raise Exception("NOT IMPLEMENTED IN DATABASE")
-        self.celebrity_type = celebrity_type
-        self.type_name = type_name
-    celebrity_type = Column(Integer, primary_key=True)
-    type_name = Column(String(30), nullable=False)
-
     
 class Relationship(Base):
     __tablename__ = 'relationship'

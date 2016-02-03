@@ -112,8 +112,6 @@ class Crawler(object):
             print "wait to", limit_since
             wait_until = limit_since
         sess.close()
-        #TODO : wait process and restart from rate_limit row information
-        print 'rate limit!'
         return (wait_until - datetime.datetime.now() ).total_seconds()
 
     def to_datetime(self, datestring):
@@ -406,7 +404,6 @@ class UserLookupCrawler(Crawler):
         Crawler.__init__(self)
         self.process_name = '/statuses/lookup'
     
-    #TODO : user_list에 있는 값을 체크해서 user에 없는 값이라면 user_info를 수집하도록 추가
     @Crawler.user_list_info
     def crawling(self, listof_user_id, update=False, **kwargs):
         sess = None
@@ -418,7 +415,12 @@ class UserLookupCrawler(Crawler):
                     include_entities=kwargs['include_entities'] if 'include_entities' in kwargs else None)
             sess = Session()
             for item in user_list:
+                #TODO : Lookup에서 정보보기를 요청했는데, 정보가 오지 않은 아이디를 정보수집 불가능 아이디로 판단하고, 제거하는 기능이 필요함
                 if update:
+                    #TODO : User테이블에 저장된 값을 UserLookupCrawler에서 수정하도록 해야할듯.
+                    user_row = sess.query(User).filter(User.id == item.id).first()
+                    user_row.update(item)
+
                     row = sess.query(UserDetail).filter(UserDetail.id == item.id).first()
                     if row is None:
                         user_chunk = UserDetail(item, self.to_datetime(item.created_at))

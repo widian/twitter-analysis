@@ -245,3 +245,12 @@ WHERE
         WHERE
             tweet_type = 18);
 
+
+# Drop Alter
+# http://stackoverflow.com/questions/7599519/alter-table-add-column-takes-a-long-time
+CREATE TABLE user_new LIKE user;
+ALTER TABLE user_new 
+ADD COLUMN `updated_date` DATETIME NULL COMMENT '' AFTER `created_date`;
+INSERT INTO user_new (id, screen_name, statuses_count, name, follower_count, tweet_collected_date, created_date,language_type,
+authorized,protected) SELECT * FROM user;
+RENAME TABLE user TO user_old, user_new TO user;
