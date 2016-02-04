@@ -178,6 +178,7 @@ class Crawler(object):
    
     def user_list_info( func ):
         def get_user_list_info(self, listof_screen_name=None, listof_user_id=None, **kwargs):
+            process_name = "/users/show/:id"
             try:
                 user_list = list()
                 if listof_screen_name is None:
@@ -391,9 +392,6 @@ class UserFollowerIDs(Crawler):
 #            print stat
 #
 
-#TODO : UserLookupCrawler를 사용해서 유저 타임라인을 긁어오는데 더 효율적으로 작동하도록 수정하기
-#       현재 User정보들은 한 번 등록된 뒤에 수정되지 않기 때문에, User/Show부분과 User/Lookup부분에
-#       해당 정보가 업데이트되도록 수정해야함
 class UserLookupCrawler(Crawler):
     def __init__(self):
         Crawler.__init__(self)
@@ -409,11 +407,12 @@ class UserLookupCrawler(Crawler):
                     user_id=listof_user_id,
                     include_entities=kwargs['include_entities'] if 'include_entities' in kwargs else None)
             sess = Session()
-            for item in user_list:
-                #TODO : Lookup에서 정보보기를 요청했는데, 정보가 오지 않은 아이디를 정보수집 불가능 아이디로 판단하고, 제거하는 기능이 필요함
-                if update:
-                    #TODO : User테이블에 저장된 값을 UserLookupCrawler에서 수정하도록 해야할듯.
+            if update:
+                for item in user_list:
+                    #TODO : Lookup에서 정보보기를 요청했는데, 정보가 오지 않은 아이디를 정보수집 불가능 아이디로 판단하고, 제거하는 기능이 필요함
                     user_row = sess.query(User).filter(User.id == item.id).first()
+                    """ update모드이면, User 테이블의 row를 수정함.
+                    """
                     user_row.update(item)
 
                     row = sess.query(UserDetail).filter(UserDetail.id == item.id).first()
@@ -422,8 +421,17 @@ class UserLookupCrawler(Crawler):
                         sess.add(user_chunk)
                     else:
                         row.update(item, self.to_datetime(item.created_at))
-                else:
+            else:
+                """ 업데이트 모드가 아니면, 데이터를 추가만 함.
+                    id list들에 있는 UserDetail을 rows에 불러온 뒤, rows안에 있으면
+                    추가하지 않음.
+                """ 
+                rows = sess.query(UserDetail).filter(UserDetail.id.in_(self.userdetaillist_to_idlist(user_list))).all()
+                for item in user_list:
+                    if self.id_in(item.id, rows):
+                        continue
                     user_chunk = UserDetail(item, self.to_datetime(item.created_at))
+                    print "Added %d" % ( item.id )
                     sess.add(user_chunk)
             sess.commit()
 
@@ -438,9 +446,37 @@ class UserLookupCrawler(Crawler):
                 sess.commit()
                 sess.close()
             return result
- 
+
+    @Crawler.user_list_info
+    def get(self, listof_user_id, **kwargs):
+        try:
+            ts = TweetSupport()
+            api = ts.get_api()
+            user_list = api.UsersLookup(
+                    user_id=listof_user_id,
+                    include_entities=kwargs['include_entities'] if 'include_entities' in kwargs else None)
+            user_detail_list = list()
+            for item in user_list:
+                user_detail_list.append(UserDetail(item, self.to_datetime(item.created_at)))
+            return user_detail_list
+        except TwitterError as e:
+            t = TweetErrorHandler(e)
+            t.add_handler(ErrorNumbers.RATE_LIMIT_ERROR, self.rate_limit_handler)
+            result = t.invoke(process_name=self.process_name)
+            return result
+
+    def userdetaillist_to_idlist(self, userdetail_list):
+        result = list()
+        for item in userdetail_list:
+            result.append(item.id)
+        return result
+
+    def id_in(self, id, rows):
+        for item in rows:
+            if item.id == id:
+                return True
+        return False
+
 if __name__ == "__main__":
-#    t = UserTimelineCrawler()
-#    t.crawling(user_id=214444654, since_id=680056873668620289)
     u = UserLookupCrawler()
-    u.crawling(listof_user_id=[20,44771983, 155884548], update=True)
+#    u.crawling(listof_user_id=[20, 2263011, 5607572])
