@@ -22,12 +22,14 @@ def users_lookup_crawler():
 
     subquery_collected_detail = sess.query(UserDetail.id).filter(UserDetail.updated_time > datetime.datetime.now() - datetime.timedelta(days=14)).subquery()
     query_result = sess.query(User.id).filter(~User.id.in_(subquery_collected_detail)).order_by(desc(User.id)).all()
+#    query_result = sess.query(User.id).order_by(desc(User.id)).all()
+
     id_list = list()
     for item in query_result:
         id_list.append( item[0] )
 
     def get_result(userdetail_crawler, target_id_list):
-        return userdetail_crawler.crawling(listof_user_id=target_id_list)
+        return userdetail_crawler.crawling(listof_user_id=target_id_list, update=True)
 
     while len(id_list) != 0:
         """ id_list를 받은 뒤, 맨 앞부터 100개씩 잘라냅니다.
