@@ -89,13 +89,8 @@ class User(Base):
     AUTHORIZED = 1
     UNAUTHORIZED = 0
 
-    def __init__(self, id, name, screen_name, statuses_count, follower_count):
-        self.id = id
-        self.name = name
-        self.screen_name = screen_name
-        self.statuses_count = statuses_count
-        self.follower_count = follower_count
-        self.updated_date = datetime.datetime.now()
+    def __init__(self, user):
+        self.update(user)
 
     id = Column(BigInteger, primary_key=True)
     name = Column(Unicode(21), nullable=False)
@@ -121,7 +116,7 @@ class User(Base):
 class UserDetail(Base):
     __tablename__ = 'user_detail'
 
-    #TODO : User에 있는 Column은 UserDetail에서 관리하지 않게 하기
+    #NOTE : User에 있는 Column은 UserDetail에서 관리하지 않게 하기
     #NOTE : 그냥 UserDetail이 User에 있는 정보를 관리하도록할까. User의 정보는 업데이트 되고 있지 않기 때문에
 
     def __init__(self, user, created_at):

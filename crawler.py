@@ -144,12 +144,7 @@ class Crawler(object):
             api = ts.get_api()
             user = api.GetUser(screen_name=screen_name, user_id=user_id,
                                 include_entities=kwargs['include_entities'] if 'include_entities' in kwargs else None)
-            user_chunk = User(
-                user.id,
-                user.name,
-                user.screen_name,
-                user.statuses_count,
-                user.followers_count)
+            user_chunk = User(user)
             sess.add(user_chunk)
             sess.commit()
             sess.close()
