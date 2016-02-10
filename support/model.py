@@ -473,6 +473,14 @@ class Tweet_44771983_2(TweetBase, Base):
     _MAXIMUM_created_at = '2015-12-24 16:06:08'
     _MAXIMUM_id = 680056873668620289
 
+class Tweet_44771983_3(TweetBase, Base):
+    __tablename__ = 'tweet_44771983_3'
+
+    _MINIMUM_created_at = '2015-12-24 16:06:09'
+    _MINIMUM_id = 680056877938425857
+    _MAXIMUM_created_at = '2016-02-04 21:38:05'
+    _MAXIMUM_id = 695360703083868163
+
 class Tweet_155884548_1(TweetBase, Base):
     __tablename__ = 'tweet_155884548_1'
 
@@ -565,10 +573,12 @@ Tweet_335204566.append(Tweet_335204566_9)
 
 Tweet_281916923 = list()
 Tweet_281916923.append(Tweet_281916923_1)
+Tweet_281916923.append(Tweet_281916923_2)
 
 Tweet_44771983 = list()
 Tweet_44771983.append(Tweet_44771983_1)
 Tweet_44771983.append(Tweet_44771983_2)
+Tweet_44771983.append(Tweet_44771983_3)
 
 Tweet_155884548 = list()
 Tweet_155884548.append(Tweet_155884548_1)
