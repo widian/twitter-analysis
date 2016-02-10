@@ -139,4 +139,4 @@ def make_table_create_query():
     from support.mysql_support import engine
     print CreateTable(UserDetail.__table__).compile(engine)
 
-make_table_create_query()
+#make_table_create_query()

@@ -46,6 +46,24 @@ def timeline_crawler():
         for item in relationship_list:
             result.append(item.follower)
         return result
+
+    def is_target(since_id, relationship, lookup_result):
+        """ LookupCache에 없는 유저는 무조건 수집
+            Cache에는 있지만, 가장 최근 트윗이 since_id보다 작거나, None인 유저는 수집하지 않음.
+            crawling_list에 relationship을 추가하는 걸로 수집결정
+        """     
+        if not isinstance(lookup_result, list):
+            #NOTE : 이 부분을 내가 왜넣었을까.
+            return True
+
+        for item in lookup_result:
+            if relationship.follower == item.id:
+                if item.latest_status_id is None or item.latest_status_id < since_id:
+                    return False
+                else:
+                    return True
+        return True
+
     while len(result) != 0:
         crawling_list = list()
         lookup_list = result[:100]
@@ -53,7 +71,7 @@ def timeline_crawler():
         lookup_cache = sess.query(UserDetail).filter(UserDetail.id.in_(id_list)).order_by(asc(UserDetail.id)).all()
 
         lookup_result = userdetail_crawler.get(listof_user_id=id_list)
-        while lookup_result is not True:
+        while not isinstance(lookup_result, list):
             if ErrorNumbers.RATE_LIMIT_ERROR in lookup_result:
                 print 'wait %d seconds' % (lookup_result[ErrorNumbers.RATE_LIMIT_ERROR] + 10)
                 try:
@@ -64,22 +82,8 @@ def timeline_crawler():
                     print lookup_result[ErrorNumbers.RATE_LIMIT_ERROR], e
                 lookup_result = userdetail_crawler.get(listof_user_id=id_list)
             else:
-                print "UNKNOWN ERROR "
+                print "UNKNOWN ERROR ", lookup_result
                 break
-
-        def is_target(since_id, relationship, lookup_result):
-            """ LookupCache에 없는 유저는 무조건 수집
-                Cache에는 있지만, 가장 최근 트윗이 since_id보다 작거나, None인 유저는 수집하지 않음.
-                crawling_list에 relationship을 추가하는 걸로 수집결정
-            """       
-            for item in lookup_result:
-                if relationship.follower == item.id:
-                    if item.latest_status_id is None or item.latest_status_id < since_id:
-                        return False
-                    else:
-                        return True
-            return True
-
         for item in lookup_list:
             if is_target(since_id, item, lookup_result):
                 crawling_list.append(item)
