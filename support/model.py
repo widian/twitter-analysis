@@ -74,14 +74,14 @@ class ErrorTweet(Base):
         self.created_at = created_at
 
     id = Column(BigInteger, primary_key=True)
-    text = Column(String(141), nullable=False)
+    text = Column(String(255), nullable=False)
     user = Column(BigInteger, nullable=False)
     retweet_owner = Column(BigInteger)
     retweet_origin = Column(BigInteger)
     created_at = Column(DateTime, nullable=False)
     collected_date = Column(DateTime, nullable=False, default=datetime.datetime.now())
     reply_to = Column(BigInteger)
-    search_id = Column(Integer, primary_key=True)
+    search_id = Column(Integer, primary_key=True, default=-1)
 
 class User(Base):
     __tablename__ = 'user'
@@ -363,7 +363,7 @@ class WordAnalysisLog(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     word_id = Column(Integer, ForeignKey('word_table.id'), nullable=False)
     word = relationship("WordTable")
-    search_log_type = Column(Integer, ForeignKey('tweet_type.id'), nullable=False)
+    search_log_type = Column(Integer, ForeignKey('tweet_type.id'), nullable=False, index=True)
     tweet_type = relationship("TweetType")
     word_count = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime, nullable=False, default=datetime.datetime.now())

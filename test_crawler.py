@@ -134,9 +134,21 @@ def timeline_crawling_too_long_tweet_handler():
 def make_table_create_query():
     """ http://stackoverflow.com/questions/2128717/sqlalchemy-printing-raw-sql-from-create
     """ 
-    from support.model import UserDetail
     from sqlalchemy.schema import CreateTable
+    from sqlalchemy import UniqueConstraint
     from support.mysql_support import engine
-    print CreateTable(UserDetail.__table__).compile(engine)
+    import support.model as m
+#    print CreateTable(m.Tweet.__table__).compile(engine)
+#    print CreateTable(m.ErrorTweet.__table__).compile(engine)
+    print CreateTable(m.Relationship.__table__, include_foreign_key_constraints=UniqueConstraint('following', 'follower')     )
+#    print CreateTable(m.RateLimit.__table__).compile(engine)
+#    print CreateTable(m.User.__table__).compile(engine)
+#    print CreateTable(m.UserDetail.__table__).compile(engine)
+#    print CreateTable(m.LanguageType.__table__).compile(engine)
+#    print CreateTable(m.TweetType.__table__).compile(engine)
+#    print CreateTable(m.UserList.__table__).compile(engine)
+#    print CreateTable(m.TweetSearchLog.__table__).compile(engine)
+#    print CreateTable(m.WordTable.__table__).compile(engine)
+#    print CreateTable(m.WordAnalysisLog.__table__).compile(engine)
 
-#make_table_create_query()
+make_table_create_query()

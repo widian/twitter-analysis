@@ -397,7 +397,6 @@ class UserLookupCrawler(Crawler):
         Crawler.__init__(self)
         self.process_name = '/statuses/lookup'
     
-    @Crawler.user_list_info
     def crawling(self, listof_user_id, update=False, **kwargs):
         sess = None
         try:
@@ -413,7 +412,10 @@ class UserLookupCrawler(Crawler):
                     user_row = sess.query(User).filter(User.id == item.id).first()
                     """ update모드이면, User 테이블의 row를 수정함.
                     """
-                    user_row.update(item)
+                    if user_row is None:
+                        sess.add(User(item))
+                    else:
+                        user_row.update(item)
 
                     row = sess.query(UserDetail).filter(UserDetail.id == item.id).first()
                     if row is None:
@@ -428,6 +430,10 @@ class UserLookupCrawler(Crawler):
                 """ 
                 rows = sess.query(UserDetail).filter(UserDetail.id.in_(self.userdetaillist_to_idlist(user_list))).all()
                 for item in user_list:
+                    user_row = sess.query(User).filter(User.id == item.id).first()
+                    if user_row is None:
+                        sess.add(User(item))
+
                     if self.id_in(item.id, rows):
                         continue
                     user_chunk = UserDetail(item, self.to_datetime(item.created_at))
@@ -481,3 +487,5 @@ if __name__ == "__main__":
     u = UserLookupCrawler()
     print u.get_rate_limit_status()
 #    u.crawling(listof_user_id=[20, 2263011, 5607572])
+    f = UserFollowerIDs()
+    f.crawling(user_id=281916923)

@@ -19,28 +19,36 @@ def timeline_crawler():
     sess = Session()
     
     """ NC 다이노스 """
-    #target_id = 335204566
+    target_id = 335204566
 
     """ 삼성 라이온즈 """
     #target_id = 281916923
 
     """ 기아 타이거즈 """
-    target_id = 44771983
+    #target_id = 44771983
 
     """ 레바 """
     #target_id = 155884548
     """ """
     
     #TODO : 각각의 horizontal partition에 대해 get_result부분이 변할 수 있도록 해야함. since_id 혹은 since를 외부 테이블 정보로부터 받아올 수 있도록
-    since_id = 680056873668620289
+    since_id = 621106918325497856
     subquery_collected_date = sess.query(User.id).filter(or_(
         User.tweet_collected_date == None, 
         User.tweet_collected_date < datetime.datetime.now() - datetime.timedelta(days=14)))\
                 .subquery()
-    result = sess.query(Relationship).filter(Relationship.follower.in_(subquery_collected_date))\
+    subquery_user_exist_check = sess.query(User.id).subquery()
+
+    #NOTE : collected_date가 None이거나 collected_date가 14일 이전이거나
+    #       user에 follower가 없거나 한 follower중에
+    #       following이 target_id와 같은 것들
+    result = sess.query(Relationship).filter(or_(
+        Relationship.follower.in_(subquery_collected_date),
+        ~Relationship.follower.in_(subquery_user_exist_check)))\
                                      .filter(Relationship.following == target_id).all()
 
     userdetail_crawler = UserLookupCrawler()
+
     def usermodellist_to_idlist(relationship_list):
         result = list()
         for item in relationship_list:
@@ -66,9 +74,14 @@ def timeline_crawler():
 
     while len(result) != 0:
         crawling_list = list()
+        """ result는 Relationship으로 이루어진 follower정보의 리스트
+        """
         lookup_list = result[:100]
         id_list = usermodellist_to_idlist(lookup_list)
         lookup_cache = sess.query(UserDetail).filter(UserDetail.id.in_(id_list)).order_by(asc(UserDetail.id)).all()
+
+        if len(lookup_cache) < 100:
+            userdetail_crawler.crawling(listof_user_id=id_list)
 
         lookup_result = userdetail_crawler.get(listof_user_id=id_list)
         while not isinstance(lookup_result, list):
@@ -99,7 +112,6 @@ def automatic_crawling(since_id, crawling_list):
     #    return timeline_crawler.crawling(user_id=follower, since=datetime.datetime(year=2015, month=12, day=7, hour=1, minute=28, second=36))
 
     for item in crawling_list:
-        #TODO : user체크를 이제 상위 함수에서 처리하고 있기 때문에, 이쪽 루틴을 철거해야함
         result = get_result(timeline_crawler, item.follower)
         print result, item.follower
         while result is not True:
