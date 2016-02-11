@@ -346,7 +346,7 @@ class UserFollowerIDs(Crawler):
     def crawling(self, user_id, **kwargs):
         sess = None
         try:
-            ts = TweetSupport()
+            ts = TweetSupport(sleep_on_rate_limit=True)
             api = ts.get_api()
             follower_ids = api.GetFollowerIDs(
                     user_id=user_id,
@@ -355,11 +355,10 @@ class UserFollowerIDs(Crawler):
                     count=kwargs['count'] if 'count' in kwargs else None,
                     total_count=kwargs['total_count'] if 'total_count' in kwargs else None)
             sess = Session()
-            remained = len(follower_ids)
             for id in follower_ids:
-                remained -= 1
-                print "add ", remained
-                exist = sess.query(Relationship).filter(Relationship.following == user_id).filter(Relationship.follower == id).first()
+                exist = sess.query(Relationship)\
+                        .filter(Relationship.following == user_id)\
+                        .filter(Relationship.follower == id).first()
                 if exist:
                     continue
                 else:
@@ -484,8 +483,8 @@ class UserLookupCrawler(Crawler):
         return False
 
 if __name__ == "__main__":
-    u = UserLookupCrawler()
-    print u.get_rate_limit_status()
+#    u = UserLookupCrawler()
+#    print u.get_rate_limit_status()
 #    u.crawling(listof_user_id=[20, 2263011, 5607572])
     f = UserFollowerIDs()
     f.crawling(user_id=281916923)
