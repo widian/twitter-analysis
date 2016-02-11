@@ -346,7 +346,7 @@ class UserFollowerIDs(Crawler):
     def crawling(self, user_id, **kwargs):
         sess = None
         try:
-            ts = TweetSupport(sleep_on_rate_limit=True)
+            ts = TweetSupport()
             api = ts.get_api()
             follower_ids = api.GetFollowerIDs(
                     user_id=user_id,
@@ -487,4 +487,4 @@ if __name__ == "__main__":
 #    print u.get_rate_limit_status()
 #    u.crawling(listof_user_id=[20, 2263011, 5607572])
     f = UserFollowerIDs()
-    f.crawling(user_id=281916923)
+    f.crawling(user_id=155884548)

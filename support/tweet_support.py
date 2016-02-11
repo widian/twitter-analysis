@@ -9,8 +9,7 @@ class TweetSupport(object):
                 consumer_key= 'Jn0vFPTkewSek85vb1USoCQf4',
                 consumer_secret = 'VnFh6AvyiojNKVFUryQXWaKKzHsvBsVnebjQWDcOCfftsjgO9J',
                 access_token_key = '100506002-67IOcA0mZehNVmJlqmkOIB4QsJfjlXKK1OX0ylqO',
-                access_token_secret='j72a7volEPzuwRAmu44j467IyxdZHpgIA1fPxU6AgWDy1',
-                sleep_on_rate_limit=sleep_on_rate_limit)
+                access_token_secret='j72a7volEPzuwRAmu44j467IyxdZHpgIA1fPxU6AgWDy1')
     def get_api(self):
         return self.api
 
