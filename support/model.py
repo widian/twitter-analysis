@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#/usr/bin/env python
 # -*- coding:utf8 -*-
 
 import datetime
@@ -372,225 +372,43 @@ class WordAnalysisLog(Base):
 class Tweet_335204566_1(TweetBase, Base):
     __tablename__ = 'tweet_335204566_1'
 
-    _MINIMUM_id = 14251891
-    _MINIMUM_created_at = '2007-03-28 13:21:41'
-    _MAXIMUM_id = 96620479451906048
-    _MAXIMUM_created_at = '2011-07-28 16:38:12'
+    _MINIMUM_id = 621106947786289153
+    _MINIMUM_created_at = '2015-07-15 00:00:10'
+    _MAXIMUM_id = 679220176424984576
+    _MAXIMUM_created_at = '2015-12-22 08:41:24'
 
 class Tweet_335204566_2(TweetBase, Base):
     __tablename__ = 'tweet_335204566_2'
 
-    _MINIMUM_id = 96620695978643456
-    _MINIMUM_created_at = '2011-07-28 16:39:03'
-    _MAXIMUM_id = 187823936057262080
-    _MAXIMUM_created_at = '2012-04-05 08:48:10'
-
-class Tweet_335204566_3(TweetBase, Base):
-    __tablename__ = 'tweet_335204566_3'
-
-    _MINIMUM_id = 187823967489376256
-    _MINIMUM_created_at = '2012-04-05 08:48:18'
-    _MAXIMUM_id = 275429499905118208
-    _MAXIMUM_created_at = '2012-12-03 02:41:24'
-
-class Tweet_335204566_4(TweetBase, Base):
-    __tablename__ = 'tweet_335204566_4'
-
-    _MINIMUM_id = 275429574492426240
-    _MINIMUM_created_at = '2012-12-03 02:41:42'
-    _MAXIMUM_id = 367339079869808640
-    _MAXIMUM_created_at = '2013-08-13 17:37:16'
-
-class Tweet_335204566_5(TweetBase, Base):
-    __tablename__ = 'tweet_335204566_5'
-
-    _MINIMUM_id = 367339336745750528
-    _MINIMUM_created_at = '2013-08-13 17:38:17'
-    _MAXIMUM_id = 471998072784834561
-    _MAXIMUM_created_at = '2014-05-29 12:54:44'
-
-class Tweet_335204566_6(TweetBase, Base):
-    __tablename__ = 'tweet_335204566_6'
-
-    _MINIMUM_id = 471998203177365506
-    _MINIMUM_created_at = '2014-05-29 12:55:15'
-    _MAXIMUM_id = 556243889950957568
-    _MAXIMUM_created_at = '2015-01-17 00:17:32'
-
-class Tweet_335204566_7(TweetBase, Base):
-    __tablename__ = 'tweet_335204566_7'
-
-    _MINIMUM_id = 556243972167720960
-    _MINIMUM_created_at = '2015-01-17 00:17:52'
-    _MAXIMUM_id = 621310510785409024
-    _MAXIMUM_created_at = '2015-07-15 13:29:03'
-
-class Tweet_335204566_8(TweetBase, Base):
-    __tablename__ = 'tweet_335204566_8'
-
-    _MINIMUM_id = 621310521631838208
-    _MINIMUM_created_at = '2015-07-15 13:29:06'
-    _MAXIMUM_id = 658478158061039616
-    _MAXIMUM_created_at = '2015-10-26 03:00:01'
-
-class Tweet_335204566_9(TweetBase, Base):
-    __tablename__ = 'tweet_335204566_9'
-
-    _MINIMUM_id = 658478161550815232
-    _MINIMUM_created_at = '2015-10-26 03:00:02'
-    _MAXIMUM_id = 673675443527020544
-    _MAXIMUM_created_at = '2015-12-07 01:28:36'
-
-class Tweet_281916923_1(TweetBase, Base):
-    __tablename__ = 'tweet_281916923_1'
-
-    _MINIMUM_created_at = '2015-07-15 00:00:03'
-    _MINIMUM_id = 621106918325497856
-    _MAXIMUM_created_at = '2015-12-17 07:37:34'
-    _MAXIMUM_id = 677392173583601664
-
-class Tweet_281916923_2(TweetBase, Base):
-    __tablename__ = 'tweet_281916923_2'
-
-    _MINIMUM_created_at = '2015-12-17 07:38:02'
-    _MINIMUM_id = 677392293364563968
-    _MAXIMUM_created_at = '2016-01-20 21:37:01'
-    _MAXIMUM_id = 689924617486471168
-
-class Tweet_44771983_1(TweetBase, Base):
-    __tablename__ = 'tweet_44771983_1'
-
-    _MINIMUM_created_at = '2015-07-15 00:00:30'
-    _MINIMUM_id = 621107030376321028
-    _MAXIMUM_created_at = '2015-12-16 06:01:20'
-    _MAXIMUM_id = 677005569400639489
-
-class Tweet_44771983_2(TweetBase, Base):
-    __tablename__ = 'tweet_44771983_2'
-
-    _MINIMUM_created_at = '2015-12-16 06:01:23'
-    _MINIMUM_id = 677005581903884292
-    _MAXIMUM_created_at = '2015-12-24 16:06:08'
-    _MAXIMUM_id = 680056873668620289
-
-class Tweet_44771983_3(TweetBase, Base):
-    __tablename__ = 'tweet_44771983_3'
-
-    _MINIMUM_created_at = '2015-12-24 16:06:09'
-    _MINIMUM_id = 680056877938425857
-    _MAXIMUM_created_at = '2016-02-04 21:38:05'
-    _MAXIMUM_id = 695360703083868163
-
-class Tweet_155884548_1(TweetBase, Base):
-    __tablename__ = 'tweet_155884548_1'
-
-    _MINIMUM_created_at = '2015-07-15 00:00:02'
-    _MINIMUM_id = 621106914055729153
-    _MAXIMUM_created_at = '2015-09-02 07:25:54'
-    _MAXIMUM_id = 638976125327179776
-
-class Tweet_155884548_2(TweetBase, Base):
-    __tablename__ = 'tweet_155884548_2'
-
-    _MINIMUM_id = 638976128430948352
-    _MINIMUM_created_at = '2015-09-02 07:25:55'
-    _MAXIMUM_id = 652437836478545921
-    _MAXIMUM_created_at = '2015-10-09 10:57:56'
-
-class Tweet_155884548_3(TweetBase, Base):
-    __tablename__ = 'tweet_155884548_3'
-    _MINIMUM_id = 652437851552919559
-    _MINIMUM_created_at = '2015-10-09 10:58:00'
-    _MAXIMUM_id = 661703766018686976
-    _MAXIMUM_created_at = '2015-11-04 00:37:26'
-
-class Tweet_155884548_4(TweetBase, Base):
-    __tablename__ = 'tweet_155884548_4'
-
-    _MINIMUM_id = 661703790421127168
-    _MINIMUM_created_at = '2015-11-04 00:37:32'
-    _MAXIMUM_id = 667554398751494144
-    _MAXIMUM_created_at = '2015-11-20 04:05:45'
-
-class Tweet_155884548_5(TweetBase, Base):
-    __tablename__ = 'tweet_155884548_5'
-
-    _MINIMUM_id = 667554402429890560
-    _MINIMUM_created_at = '2015-11-20 04:05:46'
-    _MAXIMUM_id = 672390443892531200
-    _MAXIMUM_created_at = '2015-12-03 12:22:28'
-
-class Tweet_155884548_6(TweetBase, Base):
-    __tablename__ = 'tweet_155884548_6'
-
-    _MINIMUM_id = 672390443959627776
-    _MINIMUM_created_at = '2015-12-03 12:22:28'
-    _MAXIMUM_id = 676021752875507712
-    _MAXIMUM_created_at = '2015-12-13 12:52:00'
-
-class Tweet_155884548_7(TweetBase, Base):
-    __tablename__ = 'tweet_155884548_7'
-
-    _MINIMUM_id = 676021754486120448 
-    _MINIMUM_created_at = '2015-12-13 12:52:00'
-    _MAXIMUM_id = 678975976110297089
-    _MAXIMUM_created_at = '2015-12-21 16:31:02'
-
-class Tweet_155884548_8(TweetBase, Base):
-    __tablename__ = 'tweet_155884548_8'
-
-    _MINIMUM_id = 678975976420716544
-    _MINIMUM_created_at = '2015-12-21 16:31:02'
-    _MAXIMUM_id = 681373624217939968
-    _MAXIMUM_created_at = '2015-12-28 07:18:25'
-
-class Tweet_155884548_9(TweetBase, Base):
-    __tablename__ = 'tweet_155884548_9'
-
-    _MINIMUM_id = 681373624553594880
-    _MINIMUM_created_at = '2015-12-28 07:18:26'
-    _MAXIMUM_id = 683232730427998208
-    _MAXIMUM_created_at = '2016-01-02 10:25:51'
-
-class Tweet_155884548_10(TweetBase, Base):
-    __tablename__ = 'tweet_155884548_10'
-
-    _MINIMUM_id = 683232731879190528
-    _MINIMUM_created_at = '2016-01-02 10:25:51' 
-    _MAXIMUM_id = 686406268383150080
-    _MAXIMUM_created_at = '2016-01-11 04:36:21'
+    _MINIMUM_id = 679220181642715136
+    _MINIMUM_created_at = '2015-12-22 08:41:25'
+    _MAXIMUM_id = 698760147024252928
+    _MAXIMUM_created_at = '2016-02-14 06:46:16'
 
 Tweet_335204566 = list()
 Tweet_335204566.append(Tweet_335204566_1)
 Tweet_335204566.append(Tweet_335204566_2)
-Tweet_335204566.append(Tweet_335204566_3)
-Tweet_335204566.append(Tweet_335204566_4)
-Tweet_335204566.append(Tweet_335204566_5)
-Tweet_335204566.append(Tweet_335204566_6)
-Tweet_335204566.append(Tweet_335204566_7)
-Tweet_335204566.append(Tweet_335204566_8)
-Tweet_335204566.append(Tweet_335204566_9)
 
 Tweet_281916923 = list()
-Tweet_281916923.append(Tweet_281916923_1)
-Tweet_281916923.append(Tweet_281916923_2)
-
+#Tweet_281916923.append(Tweet_281916923_1)
+#Tweet_281916923.append(Tweet_281916923_2)
+#
 Tweet_44771983 = list()
-Tweet_44771983.append(Tweet_44771983_1)
-Tweet_44771983.append(Tweet_44771983_2)
-Tweet_44771983.append(Tweet_44771983_3)
-
+#Tweet_44771983.append(Tweet_44771983_1)
+#Tweet_44771983.append(Tweet_44771983_2)
+#Tweet_44771983.append(Tweet_44771983_3)
+#
 Tweet_155884548 = list()
-Tweet_155884548.append(Tweet_155884548_1)
-Tweet_155884548.append(Tweet_155884548_2)
-Tweet_155884548.append(Tweet_155884548_3)
-Tweet_155884548.append(Tweet_155884548_4)
-Tweet_155884548.append(Tweet_155884548_5)
-Tweet_155884548.append(Tweet_155884548_6)
-Tweet_155884548.append(Tweet_155884548_7)
-Tweet_155884548.append(Tweet_155884548_8)
-Tweet_155884548.append(Tweet_155884548_9)
-Tweet_155884548.append(Tweet_155884548_10)
+#Tweet_155884548.append(Tweet_155884548_1)
+#Tweet_155884548.append(Tweet_155884548_2)
+#Tweet_155884548.append(Tweet_155884548_3)
+#Tweet_155884548.append(Tweet_155884548_4)
+#Tweet_155884548.append(Tweet_155884548_5)
+#Tweet_155884548.append(Tweet_155884548_6)
+#Tweet_155884548.append(Tweet_155884548_7)
+#Tweet_155884548.append(Tweet_155884548_8)
+#Tweet_155884548.append(Tweet_155884548_9)
+#Tweet_155884548.append(Tweet_155884548_10)
 
 
 if __name__ == '__main__':

@@ -19,10 +19,10 @@ def timeline_crawler():
     sess = Session()
     
     """ NC 다이노스 """
-    target_id = 335204566
+    #target_id = 335204566
 
     """ 삼성 라이온즈 """
-    #target_id = 281916923
+    target_id = 281916923
 
     """ 기아 타이거즈 """
     #target_id = 44771983
@@ -46,7 +46,6 @@ def timeline_crawler():
         Relationship.follower.in_(subquery_collected_date),
         ~Relationship.follower.in_(subquery_user_exist_check)))\
                                      .filter(Relationship.following == target_id).all()
-
     userdetail_crawler = UserLookupCrawler()
 
     def usermodellist_to_idlist(relationship_list):
