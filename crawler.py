@@ -129,13 +129,12 @@ class Crawler(object):
         exist = sess.query(User).filter(or_(User.screen_name == screen_name,
                                             User.id == user_id)).first()
 
-        #TODO : authorized값을 없애고 protected로 교체해야 함.
         if exist:
             """ 세션을 닫고 해당 유저의 id를 추가로 전달. screen_name을 받든, user_id를 받든
                 crawling 함수에는 user_id를 전달함
             """
             sess.close()
-            return exist.id, exist.authorized
+            return exist.id, exist
         else:
             """ Twitter로부터 유저정보를 받은 뒤 DB에 저장.
                 NOTE: 에러 처리 파트를 함수 바깥으로 빼놓고 처리하기.
@@ -150,7 +149,6 @@ class Crawler(object):
             sess.close()
             return user.id, 
 
-    #TODO : 유저의 가장 최근 status 정보를 받아서 func에 정보를 전달하기
     def user_info( func ):
         """ 특정 crawling이 어떤 user대상이라면, 미리 user정보를 받아오기 위한
             decorator함수. 
@@ -160,7 +158,7 @@ class Crawler(object):
             try:
                 result = self.get_user_info(screen_name=screen_name, user_id=user_id, **kwargs)
                 if len(result) > 1:
-                    return func(self, result[0], authorized=result[1], **kwargs)
+                    return func(self, result[0], user=result[1], **kwargs)
                 else:
                     return func(self, result[0], **kwargs)
             except TwitterError as e:
@@ -212,12 +210,13 @@ class UserTimelineCrawler(Crawler):
         self.process_name = '/statuses/user_timeline'
     
     @Crawler.user_info
-    def crawling(self, user_id, authorized=User.AUTHORIZED, since=datetime.date(year=1970, month=1, day=1), **kwargs):
+    def crawling(self, user_id, user=None, since=datetime.date(year=1970, month=1, day=1), **kwargs):
         # sess => session
         sess = None
-        if authorized == User.UNAUTHORIZED:
-            print "Cannot Crawling Unauthorized User : ", user_id
-            return True
+        if user is not None:
+            if user.authorized == User.UNAUTHORIZED or user.protected :
+                print "Cannot Crawling Unauthorized or Protected User : ", user_id
+                return True
         try:
             sess = Session()
             cached_maximum_id = None
