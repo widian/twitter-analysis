@@ -22,16 +22,17 @@ def timeline_crawler():
     #target_id = 335204566
 
     """ 삼성 라이온즈 """
-    target_id = 281916923
+    #target_id = 281916923
 
     """ 기아 타이거즈 """
     #target_id = 44771983
 
     """ 레바 """
-    #target_id = 155884548
+    target_id = 155884548
     """ """
     
     #TODO : 각각의 horizontal partition에 대해 get_result부분이 변할 수 있도록 해야함. since_id 혹은 since를 외부 테이블 정보로부터 받아올 수 있도록
+    #NOTE : 지금은 7월 15일 0시에 가장 가까운 어떤 트윗 하나를 기준으로 잡아두었음.
     since_id = 621106918325497856
     subquery_collected_date = sess.query(User.id).filter(or_(
         User.tweet_collected_date == None, 

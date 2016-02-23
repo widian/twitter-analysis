@@ -486,4 +486,4 @@ if __name__ == "__main__":
 #    print u.get_rate_limit_status()
 #    u.crawling(listof_user_id=[20, 2263011, 5607572])
     f = UserFollowerIDs()
-    f.crawling(user_id=155884548)
+    f.crawling(user_id=63796828)
