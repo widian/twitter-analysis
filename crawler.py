@@ -405,22 +405,7 @@ class UserLookupCrawler(Crawler):
                     include_entities=kwargs['include_entities'] if 'include_entities' in kwargs else None)
             sess = Session()
             if update:
-                for item in user_list:
-                    #TODO : Lookup에서 정보보기를 요청했는데, 정보가 오지 않은 아이디를 정보수집 불가능 아이디로 판단하고, 제거하는 기능이 필요함
-                    user_row = sess.query(User).filter(User.id == item.id).first()
-                    """ update모드이면, User 테이블의 row를 수정함.
-                    """
-                    if user_row is None:
-                        sess.add(User(item))
-                    else:
-                        user_row.update(item)
-
-                    row = sess.query(UserDetail).filter(UserDetail.id == item.id).first()
-                    if row is None:
-                        user_chunk = UserDetail(item, self.to_datetime(item.created_at))
-                        sess.add(user_chunk)
-                    else:
-                        row.update(item, self.to_datetime(item.created_at))
+                self.update(sess, user_list)
             else:
                 """ 업데이트 모드가 아니면, 데이터를 추가만 함.
                     id list들에 있는 UserDetail을 rows에 불러온 뒤, rows안에 있으면
@@ -450,6 +435,24 @@ class UserLookupCrawler(Crawler):
                 sess.commit()
                 sess.close()
             return result
+    
+    def update(self, sess, user_list):
+        for item in user_list:
+            #TODO : Lookup에서 정보보기를 요청했는데, 정보가 오지 않은 아이디를 정보수집 불가능 아이디로 판단하고, 제거하는 기능이 필요함
+            user_row = sess.query(User).filter(User.id == item.id).first()
+            """ update모드이면, User 테이블의 row를 수정함.
+            """
+            if user_row is None:
+                sess.add(User(item))
+            else:
+                user_row.update(item)
+
+            row = sess.query(UserDetail).filter(UserDetail.id == item.id).first()
+            if row is None:
+                user_chunk = UserDetail(item, self.to_datetime(item.created_at))
+                sess.add(user_chunk)
+            else:
+                row.update(item, self.to_datetime(item.created_at))
 
     @Crawler.user_list_info
     def get(self, listof_user_id, **kwargs):
@@ -460,6 +463,12 @@ class UserLookupCrawler(Crawler):
                     user_id=listof_user_id,
                     include_entities=kwargs['include_entities'] if 'include_entities' in kwargs else None)
             user_detail_list = list()
+
+            sess = Session()
+            self.update(sess, user_list)
+            sess.commit()
+            sess.close()
+
             for item in user_list:
                 user_detail_list.append(UserDetail(item, self.to_datetime(item.created_at)))
             return user_detail_list

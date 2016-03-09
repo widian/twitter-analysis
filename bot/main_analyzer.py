@@ -64,7 +64,7 @@ if __name__=='__main__':
 
     analysis_type = analyzer.AnalysisType( since=datetime.datetime(2015, 11, 1, 0, 0, 0), 
                       until=datetime.datetime(2015, 12, 1, 0, 0, 0), 
-                      follower_of=155884548,
+                      follower_of=335204566,
                       contain_retweet=0,
                       contain_english=0,
                       contain_username_mentioned=0,

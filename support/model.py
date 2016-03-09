@@ -216,8 +216,6 @@ class UserDetail(Base):
         self.created_at = created_at
         self.updated_time = datetime.datetime.now()
 
-
-
 class Celebrity(Base):
     __tablename__ = 'celebrity'
 

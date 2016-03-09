@@ -66,11 +66,13 @@ def timeline_crawler():
 
         for item in lookup_result:
             if relationship.follower == item.id:
-                if item.latest_status_id is None or item.latest_status_id < since_id:
+                if item.latest_status_id is None:
+                    return False
+                elif item.latest_status_id < since_id:
                     return False
                 else:
                     return True
-        return True
+        return False
 
     while len(result) != 0:
         crawling_list = list()
