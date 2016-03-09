@@ -182,7 +182,7 @@ def export_result_to_csv(tweet_type):
     items = sess.query(WordAnalysisLog).filter(WordAnalysisLog.search_log_type == tweet_type)\
                                        .order_by(desc(WordAnalysisLog.word_count))\
                                        .all()
-    f = open("./data/%03d_analysis.csv" % tweet_type, 'w')
+    f = open(".././data/%03d_analysis.csv" % tweet_type, 'w')
     f.write('word, pos, is_unknown, count\n')
     for item in items:
         text = "%s, %s, %d, %s\n" % (item.word.word, item.word.pos, item.word.unknown, item.word_count)
