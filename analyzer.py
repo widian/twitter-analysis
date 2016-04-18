@@ -267,6 +267,62 @@ def get_tweetlist_based_on_userlist():
 
     sess.close()  
 
+
+def pos_similarity_analyze():
+    """ https://en.wikipedia.org/wiki/Sequence_alignment
+        유전자 비교를 하는데 사용되는 Sequence Alignment를 이용해서 유사성을 비교
+    """
+    #text = "#오션파라다이스주소 주소 PKK558,COM  르 돈 승 상 팅 며 진 운 액 진 넘 본 천 어 정 때 낮 은 있 무 장 총 회 직 보 양 라쿠텐 아 크루즈 급 솔레어카지노 바"
+    text = "존 카맥 - 둠, 울펜 슈타인 3D와 지진의 창조자는 - 또한 프타의 교제, 아카데미의 최고의 영예 수상했다."
+    text2 = "#릴게임바다 주소 W W W , S S H 9 9 6, C O M  세 아 법 카 블 게 입 요 분 쪽 올 뾻 임 팅 양 액 며 광 업 것 러 심 돈 스 띄 망 미소 업 카지노게임설명 븐 소프 입"
+
+    processor = TwitterKoreanProcessor(normalization=False, stemming=False)
+    tokens = processor.tokenize(text)
+    tokens2 = processor.tokenize(text2)
+    count = 0
+    print(len(tokens), len(tokens2))
+
+    def pos_analyze(tokens):
+        pos_dict = dict()
+        for item in tokens:
+            if item.pos not in pos_dict:
+                pos_dict[item.pos] = 1
+            else:
+                pos_dict[item.pos] += 1
+        return pos_dict
+
+    for i in xrange(len(tokens)):
+        if tokens[i].pos == tokens2[i].pos:
+            count += 1
+    print(count, pos_analyze(tokens), pos_analyze(tokens2))
+    ps = PrintString()
+    ps.print_tokens(tokens)
+#    ps.print_tokens(tokens2)
+
+def apriory_similarity():
+    """ apriori property를 이용한 두 text의 유사성검사.
+        위의 pos기반 similarity 비교에 대한 대응군.
+    """
+
+    text = "#오션파라다이스주소 주소 PKK558,COM  르 돈 승 상 팅 며 진 운 액 진 넘 본 천 어 정 때 낮 은 있 무 장 총 회 직 보 양 라쿠텐 아 크루즈 급 솔레어카지노 바"
+    text2 = "#릴게임바다 주소 W W W , S S H 9 9 6, C O M  세 아 법 카 블 게 입 요 분 쪽 올 뾻 임 팅 양 액 며 광 업 것 러 심 돈 스 띄 망 미소 업 카지노게임설명 븐 소프 입"
+
+    processor = TwitterKoreanProcessor(normalization=False, stemming=False)
+    tokens = processor.tokenize(text)
+    tokens2 = processor.tokenize(text2)
+    count = 0
+    print(len(tokens), len(tokens2))
+
+    def pos_analyze(tokens):
+        pos_dict = dict()
+        for item in tokens:
+            if item.pos not in pos_dict:
+                pos_dict[item.pos] = 1
+            else:
+                pos_dict[item.pos] += 1
+        return pos_dict
+
+
 if __name__ == '__main__':
 #
 #    korean_analyze(14206146)
@@ -285,4 +341,5 @@ if __name__ == '__main__':
         se = SentenceAnalysis()
         se.cosine_sentence_similarity()
 
-    get_tweetlist_based_on_tweet_search_log()
+#    get_tweetlist_based_on_tweet_search_log()
+    pos_similarity_analyze()
