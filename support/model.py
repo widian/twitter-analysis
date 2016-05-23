@@ -535,6 +535,45 @@ class Tweet_155884548_17(TweetBase, Base):
     _MAXIMUM_id = 709763796735119360
     _MAXIMUM_created_at = '2016-03-15 15:30:50'
 
+class Tweet_44771983_1(TweetBase, Base):
+    __tablename__ = 'tweet_44771983_1'
+
+    _MINIMUM_id = 621107010746978304
+    _MINIMUM_created_at = '2015-07-15 00:00:25'
+    _MAXIMUM_id = 674500976905076736
+    _MAXIMUM_created_at = '2015-12-09 08:08:59'
+
+class Tweet_44771983_2(TweetBase, Base):
+    __tablename__ = 'tweet_44771983_2'
+
+    _MINIMUM_id = 674501008668540928
+    _MINIMUM_created_at = '2015-12-09 08:09:06'
+    _MAXIMUM_id = 701401726218215424
+    _MAXIMUM_created_at = '2016-02-21 13:42:57'
+
+class Tweet_44771983_3(TweetBase, Base):
+    __tablename__ = 'tweet_44771983_3'
+
+    _MINIMUM_id = 701401731339460608
+    _MINIMUM_created_at = '2016-02-21 13:42:58'
+    _MAXIMUM_id = 716348680429670400
+    _MAXIMUM_created_at = '2016-04-02 19:36:49'
+
+class Tweet_1364028594_1(TweetBase, Base):
+    __tablename__ = 'tweet_1364028594_1'
+
+    _MINIMUM_id = 621107030661578752
+    _MINIMUM_created_at = '2015-07-15 00:00:30'
+    _MAXIMUM_id = 711031185300783106
+    _MAXIMUM_created_at = '2016-03-19 03:26:59'
+
+class Tweet_1364028594_2(TweetBase, Base):
+    __tablename__ = 'tweet_1364028594_2'
+
+    _MINIMUM_id = 711031304792375296
+    _MINIMUM_created_at = '2016-03-19 03:27:28'
+    _MAXIMUM_id = 722778022097518593
+    _MAXIMUM_created_at = '2016-04-20 13:24:43'
 
 
 Tweet_335204566 = list()
@@ -546,10 +585,10 @@ Tweet_281916923.append(Tweet_281916923_1)
 Tweet_281916923.append(Tweet_281916923_2)
 
 Tweet_44771983 = list()
-#Tweet_44771983.append(Tweet_44771983_1)
-#Tweet_44771983.append(Tweet_44771983_2)
-#Tweet_44771983.append(Tweet_44771983_3)
-#
+Tweet_44771983.append(Tweet_44771983_1)
+Tweet_44771983.append(Tweet_44771983_2)
+Tweet_44771983.append(Tweet_44771983_3)
+
 Tweet_155884548 = list()
 Tweet_155884548.append(Tweet_155884548_1)
 Tweet_155884548.append(Tweet_155884548_2)
@@ -561,7 +600,17 @@ Tweet_155884548.append(Tweet_155884548_7)
 Tweet_155884548.append(Tweet_155884548_8)
 Tweet_155884548.append(Tweet_155884548_9)
 Tweet_155884548.append(Tweet_155884548_10)
+Tweet_155884548.append(Tweet_155884548_11)
+Tweet_155884548.append(Tweet_155884548_12)
+Tweet_155884548.append(Tweet_155884548_13)
+Tweet_155884548.append(Tweet_155884548_14)
+Tweet_155884548.append(Tweet_155884548_15)
+Tweet_155884548.append(Tweet_155884548_16)
+Tweet_155884548.append(Tweet_155884548_17)
 
+Tweet_1364028594 = list()
+Tweet_1364028594.append(Tweet_1364028594_1)
+Tweet_1364028594.append(Tweet_1364028594_2)
 
 if __name__ == '__main__':
     pass

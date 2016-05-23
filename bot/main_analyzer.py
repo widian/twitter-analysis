@@ -7,8 +7,8 @@ sys.path.insert(0, os.path.abspath('..'))
 
 import datetime, time
 import analyzer
-from support.model import Tweet_335204566, Tweet_281916923, Tweet_44771983, Tweet_155884548
-from support.mysql_support import Session, AnalysisSession
+from support.model import Tweet_335204566, Tweet_281916923, Tweet_44771983, Tweet_155884548, Tweet_1364028594
+from support.mysql_support import Session
 """ AnalysisType Explanation
 
     contained_linked_tweet : 0 - 링크가 포함된 트윗을 제외, 1 - 링크가 포함된 트윗을 검색, 2 - 링크가 포함된 트윗만 검색
@@ -23,7 +23,7 @@ from support.mysql_support import Session, AnalysisSession
     until : until까지의 트윗만 검색
 
 """
-tweet_list = Tweet_335204566 + Tweet_281916923 + Tweet_44771983 + Tweet_155884548
+tweet_list = Tweet_335204566 + Tweet_281916923 + Tweet_44771983 + Tweet_155884548 + Tweet_1364028594
 
 def recollect(type_number):
     analysis_type = analyzer.produce_analysis_type(type_number)
@@ -62,12 +62,12 @@ def make_user_list(user_list):
 if __name__=='__main__':
 #    analysis(analyzer.produce_analysis_type(18))
 
-    analysis_type = analyzer.AnalysisType( since=datetime.datetime(2015, 11, 1, 0, 0, 0), 
-                      until=datetime.datetime(2015, 12, 1, 0, 0, 0), 
-                      follower_of=335204566,
+    analysis_type = analyzer.AnalysisType( since=datetime.datetime(2016, 4, 1, 0, 0, 0), 
+                      until=datetime.datetime(2016, 5, 1, 0, 0, 0), 
+                      follower_of=44771983,
                       contain_retweet=0,
                       contain_english=0,
                       contain_username_mentioned=0,
                       contain_linked_tweet=0,
-                      least_tweet_per_user=200)
+                      least_tweet_per_user=100)
     analysis(analysis_type)

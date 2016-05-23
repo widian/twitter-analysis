@@ -28,8 +28,15 @@ def timeline_crawler():
     #target_id = 44771983
 
     """ 레바 """
-    target_id = 155884548
-    """ """
+    #target_id = 155884548
+
+    """ 두산 아트센터"""
+    #target_id = 1364028594
+
+    """ YTN 24"""
+    target_id = 108872550
+
+
     
     #TODO : 각각의 horizontal partition에 대해 get_result부분이 변할 수 있도록 해야함. since_id 혹은 since를 외부 테이블 정보로부터 받아올 수 있도록
     #NOTE : 지금은 7월 15일 0시에 가장 가까운 어떤 트윗 하나를 기준으로 잡아두었음.
@@ -47,6 +54,7 @@ def timeline_crawler():
         Relationship.follower.in_(subquery_collected_date),
         ~Relationship.follower.in_(subquery_user_exist_check)))\
                                      .filter(Relationship.following == target_id).all()
+    #TODO : query 수정이 필요함
     userdetail_crawler = UserLookupCrawler()
 
     def usermodellist_to_idlist(relationship_list):

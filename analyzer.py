@@ -231,9 +231,11 @@ class SentenceAnalysis(object):
         def text_to_vector(text):
             words = processor.tokenize_to_strings(text)
             return Counter(words)
+        text1 = "#오션파라다이스주소 주소 PKK558,COM  르 돈 승 상 팅 며 진 운 액 진 넘 본 천 어 정 때 낮 은 있 무 장 총 회 직 보 양 라쿠텐 아 크루즈 급 솔레어카지노 바"
+        text2 = "#릴게임바다 주소 W W W , S S H 9 9 6, C O M  세 아 법 카 블 게 입 요 분 쪽 올 뾻 임 팅 양 액 며 광 업 것 러 심 돈 스 띄 망 미소 업 카지노게임설명 븐 소프 입"
 
-        text1 = u"한국어 테스트를 위한 문장입니다"
-        text2 = u"한국어로 테스트를 하는 문장입니다"
+#        text1 = u"한국어 테스트를 위한 문장입니다"
+#        text2 = u"한국어로 테스트를 하는 문장입니다"
 
         vector1 = text_to_vector(text1)
         vector2 = text_to_vector(text2)
@@ -272,8 +274,7 @@ def pos_similarity_analyze():
     """ https://en.wikipedia.org/wiki/Sequence_alignment
         유전자 비교를 하는데 사용되는 Sequence Alignment를 이용해서 유사성을 비교
     """
-    #text = "#오션파라다이스주소 주소 PKK558,COM  르 돈 승 상 팅 며 진 운 액 진 넘 본 천 어 정 때 낮 은 있 무 장 총 회 직 보 양 라쿠텐 아 크루즈 급 솔레어카지노 바"
-    text = "존 카맥 - 둠, 울펜 슈타인 3D와 지진의 창조자는 - 또한 프타의 교제, 아카데미의 최고의 영예 수상했다."
+    text = "#오션파라다이스주소 주소 PKK558,COM  르 돈 승 상 팅 며 진 운 액 진 넘 본 천 어 정 때 낮 은 있 무 장 총 회 직 보 양 라쿠텐 아 크루즈 급 솔레어카지노 바"
     text2 = "#릴게임바다 주소 W W W , S S H 9 9 6, C O M  세 아 법 카 블 게 입 요 분 쪽 올 뾻 임 팅 양 액 며 광 업 것 러 심 돈 스 띄 망 미소 업 카지노게임설명 븐 소프 입"
 
     processor = TwitterKoreanProcessor(normalization=False, stemming=False)
@@ -343,3 +344,4 @@ if __name__ == '__main__':
 
 #    get_tweetlist_based_on_tweet_search_log()
     pos_similarity_analyze()
+    similarity_test()
