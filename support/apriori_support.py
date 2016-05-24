@@ -1,42 +1,53 @@
 #!/usr/bin/env python
 # -*- coding:utf8 -*-
 
-#TODO : Apriori Algorithm 구현
 class AprioriSupport(object):
-
     initial_candidate_set = None
 
     def __init__(self):
         self.initial_candidate_set = dict()
 
-    def count_itemset(self, itemset, target):
-        count = 0
-        for item in itemset:
-            if item == target:
-                count += 1
-        return count
-
-    def gen_candidate_set(self, itemset, min_sup_value):
-        pass
-
     def add(self, item):
         key = item.make_key()
         if key in self.initial_candidate_set:
-            self.initial_candidate_set[key] += 1
+            self.initial_candidate_set[key].add()
         else:
-            self.initial_candidate_set[key] = 1
+            self.initial_candidate_set[key] = ItemValue(item)
 
     def prune(self, candidate_set, min_sup_value):
         new_candidate_set = dict()
-        for key, value in candidate_set.iteritems():
-            if value < min_sup_value:
+        for key, item in candidate_set.iteritems():
+            if item.value < min_sup_value:
                 continue
             else:
-                new_candidate_set[key] = value
+                new_candidate_set[key] = item
         return new_candidate_set
 
+    def itemset_generate(self, candidate_set):
+        itemset = set([])
+        iter_candidate_set = candidate_set.copy()
+        for key, value in candidate_set.iteritems():
+            del(iter_candidate_set[key])
+            for key2, value2 in iter_candidate_set.iteritems():
+                if value.item.concatable(value2.item):
+                    itemset.add(value.item.concat(value2.item))
+        return itemset
+
     def candidate_generate(self, candidate_set, min_sup_value):
-        new_condidate_set = dict()
+        for key, value in candidate_set.iteritems():
+            print key, value
+
+class ItemValue(object):
+    item = None
+    value = 0
+    def __init__(self, item):
+        self.item = item
+        self.value = 1
+    def add(self):
+        self.value += 1
+
+    def __repr__(self):
+        return "{0}".format(self.value)
 
 class AnalyzeItem(object):
     length = 0
@@ -71,15 +82,41 @@ class AnalyzeItem(object):
         else:
             return False
 
+    def len(self):
+        return_value = 1
+        if self.has_next():
+            return return_value + self.next_item.len()
+        else:
+            return return_value
+
+    def concatable(self, item):
+        """ 두개의 시퀀스 아이템이 합쳐질 수 있는 형태인지 확인하는 부분
+            boolean 값을 리턴해야함
+        """
+        pass
+
+    def concat(self, item):
+        """ 두개의 시퀀스 아이템을 합치는 부분
+            합쳐진 아이템을 리턴해야함
+        """
+        pass
+
     def add_next(self, next_item):
         self.next_item = next_item
 
     def make_key(self):
         key = "{0}{1}".format(self.pos, self.length)
+        if self.has_next():
+            key = "{0}{1}".format(key, self.next_item.make_key())
         return key
-
+        
     def __repr__(self):
         return self.make_key()
 
 if __name__ == '__main__':
-    pass
+    a = AnalyzeItem(1, 'a')
+    b = AnalyzeItem(3, 'asd')
+    c = AnalyzeItem(2, 'dss')
+    a.add_next(b)
+    b.add_next(c)
+    print a.make_key(), a.len()
