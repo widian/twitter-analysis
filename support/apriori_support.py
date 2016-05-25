@@ -33,7 +33,7 @@ class AprioriSupport(object):
                     itemset.add(value.item.concat(value2.item))
         return itemset
 
-    def candidate_generate(self, candidate_set, min_sup_value):
+    def candidate_generate(self, itemset, min_sup_value):
         for key, value in candidate_set.iteritems():
             print key, value
 
@@ -68,7 +68,7 @@ class AnalyzeItem(object):
         else:
             return_value = False
 
-        if self.has_next and comparer.has_next():
+        if self.has_next() and comparer.has_next():
             return return_value & self.next_item.is_same(comparer.next_item)
         elif self.has_next() and not comparer.has_next() or \
              not self.has_next() and comparer.has_next():
@@ -91,15 +91,26 @@ class AnalyzeItem(object):
 
     def concatable(self, item):
         """ 두개의 시퀀스 아이템이 합쳐질 수 있는 형태인지 확인하는 부분
-            boolean 값을 리턴해야함
+            boolean 값을 리턴해야함. item은 뒷부분 아이템
         """
-        pass
+        if self.has_next():
+            val = self.next_item.compare_item(item)
+            if item.has_next():
+                return val & self.next_item.concatable(item.next_item)
+            else:
+                return False
+        else:
+            return True
+
 
     def concat(self, item):
         """ 두개의 시퀀스 아이템을 합치는 부분
-            합쳐진 아이템을 리턴해야함
+            합쳐진 아이템을 리턴해야함, item은 뒷부분 아이템
+            concatable check 이후에 사용하는 편이 좋음.
         """
-        pass
+        a = AnalyzeItem(self.length, self.pos)
+        a.next_item = item.clone()
+        return a
 
     def add_next(self, next_item):
         self.next_item = next_item
@@ -109,6 +120,17 @@ class AnalyzeItem(object):
         if self.has_next():
             key = "{0}{1}".format(key, self.next_item.make_key())
         return key
+
+    def compare_item(self, item):
+        key1 = "{0}{1}".format(self.pos, self.length)
+        key2 = "{0}{1}".format(item.pos, item.length)
+        return key1 == key2
+
+    def clone(self):
+        a = AnalyzeItem(self.length, self.pos)
+        if self.has_next():
+            a.add_next(self.next_item.clone())
+        return a
         
     def __repr__(self):
         return self.make_key()
@@ -117,6 +139,24 @@ if __name__ == '__main__':
     a = AnalyzeItem(1, 'a')
     b = AnalyzeItem(3, 'asd')
     c = AnalyzeItem(2, 'dss')
+    h = AnalyzeItem(1, 'c')
+
+    d = AnalyzeItem(3, 'asd')
+    e = AnalyzeItem(2, 'dss')
+    g = AnalyzeItem(1, 'c')
+    f = AnalyzeItem(1, 'b')
+
+    i = AnalyzeItem(5, 'k')
+
     a.add_next(b)
     b.add_next(c)
-    print a.make_key(), a.len()
+    c.add_next(h)
+
+    d.add_next(e)
+    e.add_next(i)
+    i.add_next(f)
+    print a.concatable(d), a.clone(), a, a.is_same(a.clone())
+
+    a2 = AnalyzeItem(1,'a')
+    b2 = AnalyzeItem(2,'b')
+    print a2.concatable(b2)
