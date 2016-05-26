@@ -4,15 +4,26 @@
 class AprioriSupport(object):
     candidate_set = None
     search_block = None
+    item_candidate_set = None
     item_set = None
+    last_item = None
+    last_candidate_set = None
 
     def __init__(self):
         self.candidate_set = dict()
         self.search_block = list()
+        self.item_candidate_set = set([])
         self.item_set = set([])
+        self.last_item = None
 
-    def reset_candidate_set(self):
+    def reset_apriori_variables(self):
+        self.last_candidate_set = self.candidate_set
+        self.search_block = list()
+        self.last_item = None
         self.candidate_set = dict()
+
+    def move_itemset(self):
+        self.item_set = self.item_candidate_set
 
     def add(self, item):
         key = item.make_key()
@@ -22,18 +33,37 @@ class AprioriSupport(object):
             self.candidate_set[key] = ItemValue(item)
 
     def search_add(self, item):
+        #TODO : search block에 넣어주는 부분에서 매칭이 안될때 제거하는부분 필요
         """ item = AnalyzeItem
         """
+        search_block = list()
+#        print "item : ", item.text, item.pos, item.length
+#        print "before push : ", self.search_block
         for block in self.search_block:
+            """ 가지고 있는 search_block을 push함
+                push하면 search_block의 다음 칸과 item을 비교하게됨
+            """
             push_item = block.push()
             if push_item is None:
+                """ search_block에 다음 아이템이 없으면 search_block의 원본 아이템을
+                    candidate_set에 추가
+                """
                 self.add(block.item)
             else:
-                block = push_item
+                if item.compare_item( push_item.search_target):
+#                    print "after compare : ", item 
+                    search_block.append( push_item )
 
+        self.search_block = search_block
+#        print "after push : ", self.search_block
         for candidate in self.item_set:
+            """ candidate의 시작부분과 주어진 아이템을 비교하는 부분
+            """
             if item.compare_item(candidate):
-                self.search_block.append(SearchBlock(item))
+                """ 시작부분과 item이 같으면
+                """
+                self.search_block.append(SearchBlock(candidate))
+#        print "after append : ", self.search_block
 
     def prune(self, min_sup_value):
         new_candidate_set = dict()
@@ -43,6 +73,27 @@ class AprioriSupport(object):
             else:
                 new_candidate_set[key] = item
         self.candidate_set = new_candidate_set
+        self.item_set = set([])
+        for key, item in self.candidate_set.iteritems():
+            self.item_set.add(item.item)
+
+    def map_new_itemset(self, item):
+        for val in self.item_set:
+            if val.compare_item(item):
+                if self.last_item is not None:
+                    concat_item = self.last_item.concat(item)
+                    if self.item_exist_check(concat_item, self.item_candidate_set):
+                        break
+                    else:
+                        self.item_candidate_set.add(concat_item)
+                self.last_item = item
+                break
+
+    def item_exist_check(self, target_item, target_set):
+        for item in target_set:
+            if target_item.is_same(item):
+                return True
+        return False
 
     def itemset_generate(self):
         itemset = set([])
@@ -52,6 +103,10 @@ class AprioriSupport(object):
             for key2, value2 in iter_candidate_set.iteritems():
                 if value.item.concatable(value2.item):
                     itemset.add(value.item.concat(value2.item))
+                if value2.item.concatable(value.item):
+                    concated = value2.item.concat(value.item)
+                    if not self.item_exist_check(concated, self.item_set):
+                        itemset.add(concated)
         self.item_set = itemset
 
 
@@ -80,7 +135,7 @@ class SearchBlock(object):
     def push(self):
         if self.search_target.has_next():
             self.search_target = self.search_target.next_item
-            return self.search_target
+            return self
         else:
             return None
 
@@ -90,12 +145,15 @@ class SearchBlock(object):
 class AnalyzeItem(object):
     length = 0
     pos = None
+    text = None
 
     next_item = None
 
-    def __init__(self, length, pos):
+    def __init__(self, length, pos, text=None):
         self.length = length
         self.pos = pos
+        #NOTE : AnalyzeItem의 text는 Debug용으로 사용. Debug 종료시 text를 None으로 변경
+        self.text = text
 
     def is_same(self, comparer):
         """ comparer is AnalyzeItem
@@ -127,6 +185,12 @@ class AnalyzeItem(object):
         else:
             return return_value
 
+    def is_item_concatbale(self, target):
+        return_value = False 
+        for item in itemset:
+            return_value = return_value | item.concatable(target)
+        return return_value
+
     def concatable(self, item):
         """ 두개의 시퀀스 아이템이 합쳐질 수 있는 형태인지 확인하는 부분
             boolean 값을 리턴해야함. item은 뒷부분 아이템
@@ -146,7 +210,7 @@ class AnalyzeItem(object):
             합쳐진 아이템을 리턴해야함, item은 뒷부분 아이템
             concatable check 이후에 사용하는 편이 좋음.
         """
-        a = AnalyzeItem(self.length, self.pos)
+        a = AnalyzeItem(self.length, self.pos, text=self.text)
         a.next_item = item.clone()
         return a
 
@@ -165,7 +229,7 @@ class AnalyzeItem(object):
         return key1 == key2
 
     def clone(self):
-        a = AnalyzeItem(self.length, self.pos)
+        a = AnalyzeItem(self.length, self.pos, text=self.text)
         if self.has_next():
             a.add_next(self.next_item.clone())
         return a
@@ -174,35 +238,4 @@ class AnalyzeItem(object):
         return self.make_key()
 
 if __name__ == '__main__':
-    a = AnalyzeItem(1, 'a')
-    b = AnalyzeItem(3, 'asd')
-    c = AnalyzeItem(2, 'dss')
-    h = AnalyzeItem(1, 'c')
-
-    d = AnalyzeItem(3, 'asd')
-    e = AnalyzeItem(2, 'dss')
-    g = AnalyzeItem(1, 'c')
-    f = AnalyzeItem(1, 'b')
-
-    i = AnalyzeItem(5, 'k')
-
-    a.add_next(b)
-    b.add_next(c)
-    c.add_next(h)
-
-    d.add_next(e)
-    e.add_next(i)
-    i.add_next(f)
-    print a.concatable(d), a.clone(), a, a.is_same(a.clone())
-
-    a2 = AnalyzeItem(1,'a')
-    b2 = AnalyzeItem(2,'b')
-    print a2.concatable(b2)
-
-    apriori_support = AprioriSupport()
-    apriori_support.item_set.add(a)
-    for i in xrange(5):
-        apriori_support.search_add(a)
-    print apriori_support.search_block, apriori_support.candidate_set
-
-
+    pass
