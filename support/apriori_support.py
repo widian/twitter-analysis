@@ -2,40 +2,58 @@
 # -*- coding:utf8 -*-
 
 class AprioriSupport(object):
-    initial_candidate_set = None
+    candidate_set = None
+    search_block = None
+    item_set = None
 
     def __init__(self):
-        self.initial_candidate_set = dict()
+        self.candidate_set = dict()
+        self.search_block = list()
+        self.item_set = set([])
+
+    def reset_candidate_set(self):
+        self.candidate_set = dict()
 
     def add(self, item):
         key = item.make_key()
-        if key in self.initial_candidate_set:
-            self.initial_candidate_set[key].add()
+        if key in self.candidate_set:
+            self.candidate_set[key].add()
         else:
-            self.initial_candidate_set[key] = ItemValue(item)
+            self.candidate_set[key] = ItemValue(item)
 
-    def prune(self, candidate_set, min_sup_value):
+    def search_add(self, item):
+        """ item = AnalyzeItem
+        """
+        for block in self.search_block:
+            push_item = block.push()
+            if push_item is None:
+                self.add(block.item)
+            else:
+                block = push_item
+
+        for candidate in self.item_set:
+            if item.compare_item(candidate):
+                self.search_block.append(SearchBlock(item))
+
+    def prune(self, min_sup_value):
         new_candidate_set = dict()
-        for key, item in candidate_set.iteritems():
+        for key, item in self.candidate_set.iteritems():
             if item.value < min_sup_value:
                 continue
             else:
                 new_candidate_set[key] = item
-        return new_candidate_set
+        self.candidate_set = new_candidate_set
 
-    def itemset_generate(self, candidate_set):
+    def itemset_generate(self):
         itemset = set([])
-        iter_candidate_set = candidate_set.copy()
-        for key, value in candidate_set.iteritems():
+        iter_candidate_set = self.candidate_set.copy()
+        for key, value in self.candidate_set.iteritems():
             del(iter_candidate_set[key])
             for key2, value2 in iter_candidate_set.iteritems():
                 if value.item.concatable(value2.item):
                     itemset.add(value.item.concat(value2.item))
-        return itemset
+        self.item_set = itemset
 
-    def candidate_generate(self, itemset, min_sup_value):
-        for key, value in candidate_set.iteritems():
-            print key, value
 
 class ItemValue(object):
     item = None
@@ -48,6 +66,26 @@ class ItemValue(object):
 
     def __repr__(self):
         return "{0}".format(self.value)
+
+class SearchBlock(object):
+    key = None
+    item = None
+    search_target = None
+
+    def __init__(self, item):
+        self.key = item.make_key()
+        self.item = item
+        self.search_target = item.clone()
+
+    def push(self):
+        if self.search_target.has_next():
+            self.search_target = self.search_target.next_item
+            return self.search_target
+        else:
+            return None
+
+    def __repr__(self):
+        return "SearchBlock(item : {0}, search_target: {1})".format(self.item, self.search_target)
 
 class AnalyzeItem(object):
     length = 0
@@ -160,3 +198,11 @@ if __name__ == '__main__':
     a2 = AnalyzeItem(1,'a')
     b2 = AnalyzeItem(2,'b')
     print a2.concatable(b2)
+
+    apriori_support = AprioriSupport()
+    apriori_support.item_set.add(a)
+    for i in xrange(5):
+        apriori_support.search_add(a)
+    print apriori_support.search_block, apriori_support.candidate_set
+
+
