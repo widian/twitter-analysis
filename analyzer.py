@@ -13,6 +13,7 @@ from support.model import Tweet, User, TweetType, TweetSearchLog, Relationship, 
 from sqlalchemy import desc
 
 from support.analyzer_model import Word, AnalysisType, PrintString, UserListType
+from support.apriori_support import AnalyzeItem, AprioriSupport
 
 import datetime
 
@@ -298,30 +299,39 @@ def pos_similarity_analyze():
     print(count, pos_analyze(tokens), pos_analyze(tokens2))
     ps = PrintString()
     ps.print_tokens(tokens)
-#    ps.print_tokens(tokens2)
 
-def apriory_similarity():
-    """ apriori property를 이용한 두 text의 유사성검사.
-        위의 pos기반 similarity 비교에 대한 대응군.
+
+def apriori_item_search(tokens, min_sup_value):
+    """ apriori item으로 tokens를 frequent depend search.
     """
+    apriori_support = AprioriSupport()
+    #TODO : tokens의 target을 특정 트윗 유저의 100 트윗을 대상으로
+    for item in tokens:
+        candidate = AnalyzeItem(len(item.text), item.pos, text=item.text)
+        apriori_support.add(candidate)
+    apriori_support.prune(min_sup_value)
+#    print( "item_set after prune : " , apriori_support.item_set )
+    for item in tokens:
+        candidate = AnalyzeItem(len(item.text), item.pos)
+        apriori_support.map_new_itemset(candidate)
 
-    text = "#오션파라다이스주소 주소 PKK558,COM  르 돈 승 상 팅 며 진 운 액 진 넘 본 천 어 정 때 낮 은 있 무 장 총 회 직 보 양 라쿠텐 아 크루즈 급 솔레어카지노 바"
-    text2 = "#릴게임바다 주소 W W W , S S H 9 9 6, C O M  세 아 법 카 블 게 입 요 분 쪽 올 뾻 임 팅 양 액 며 광 업 것 러 심 돈 스 띄 망 미소 업 카지노게임설명 븐 소프 입"
+#    print( "candidate_set after map_new_itemset : ", apriori_support.candidate_set )
+#    print( "item_set after map_new_itemset: ", apriori_support.item_set )
+    apriori_support.reset_apriori_variables()
+    apriori_support.move_itemset()
+#    print( "item_set after move_itemset : ", apriori_support.item_set )
 
-    processor = TwitterKoreanProcessor(normalization=False, stemming=False)
-    tokens = processor.tokenize(text)
-    tokens2 = processor.tokenize(text2)
-    count = 0
-    print(len(tokens), len(tokens2))
-
-    def pos_analyze(tokens):
-        pos_dict = dict()
-        for item in tokens:
-            if item.pos not in pos_dict:
-                pos_dict[item.pos] = 1
-            else:
-                pos_dict[item.pos] += 1
-        return pos_dict
+    while len(apriori_support.item_set) != 0:
+        apriori_support.reset_apriori_variables()
+        for token in tokens:
+            item = AnalyzeItem(len(token.text), token.pos, text=token.text)
+            apriori_support.search_add(item)
+#        print ("candidate_set after search_add : ", apriori_support.candidate_set)
+        apriori_support.prune(min_sup_value)
+#        print ("candidate_set after prune : ", apriori_support.candidate_set)
+        apriori_support.itemset_generate()
+#        print("item_set after prune : " ,apriori_support.item_set)
+#    print("candidate_set after apriori : " , apriori_support.candidate_set )
 
 
 if __name__ == '__main__':
@@ -341,7 +351,22 @@ if __name__ == '__main__':
     def similarity_test():
         se = SentenceAnalysis()
         se.cosine_sentence_similarity()
+    def apriory_similarity_test():
+        """ apriori property를 이용한 두 text의 유사성검사.
+            위의 pos기반 similarity 비교에 대한 대응군.
+        """
+
+        text = "#오션파라다이스주소 주소 PKK558,COM  르 돈 승 상 팅 며 진 운 액 진 넘 본 천 어 정 때 낮 은 있 무 장 총 회 직 보 양 라쿠텐 아 크루즈 급 솔레어카지노 바"
+        text2 = "#릴게임바다 주소 W W W , S S H 9 9 6, C O M  세 아 법 카 블 게 입 요 분 쪽 올 뾻 임 팅 양 액 며 광 업 것 러 심 돈 스 띄 망 미소 업 카지노게임설명 븐 소프 입"
+
+        processor = TwitterKoreanProcessor(normalization=False, stemming=False)
+        tokens = processor.tokenize(text)
+        tokens2 = processor.tokenize(text2)
+
+        apriori_item_search(tokens, 3)
+
+    apriory_similarity_test()
 
 #    get_tweetlist_based_on_tweet_search_log()
-    pos_similarity_analyze()
-    similarity_test()
+#    pos_similarity_analyze()
+#    similarity_test()
