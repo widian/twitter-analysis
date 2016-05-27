@@ -33,7 +33,6 @@ class AprioriSupport(object):
             self.candidate_set[key] = ItemValue(item)
 
     def search_add(self, item):
-        #TODO : search block에 넣어주는 부분에서 매칭이 안될때 제거하는부분 필요
         """ item = AnalyzeItem
         """
         search_block = list()
@@ -153,7 +152,7 @@ class AnalyzeItem(object):
         self.length = length
         self.pos = pos
         #NOTE : AnalyzeItem의 text는 Debug용으로 사용. Debug 종료시 text를 None으로 변경
-        self.text = text
+#        self.text = text
 
     def is_same(self, comparer):
         """ comparer is AnalyzeItem
@@ -171,6 +170,11 @@ class AnalyzeItem(object):
             return False
         else:
             return return_value
+    def compare_item(self, item):
+        return item.pos == self.pos and item.length == self.length
+#        key1 = "{0}{1}".format(self.pos, self.length)
+#        key2 = "{0}{1}".format(item.pos, item.length)
+#        return key1 == key2
             
     def has_next(self):
         if self.next_item is not None:
@@ -222,11 +226,6 @@ class AnalyzeItem(object):
         if self.has_next():
             key = "{0}{1}".format(key, self.next_item.make_key())
         return key
-
-    def compare_item(self, item):
-        key1 = "{0}{1}".format(self.pos, self.length)
-        key2 = "{0}{1}".format(item.pos, item.length)
-        return key1 == key2
 
     def clone(self):
         a = AnalyzeItem(self.length, self.pos, text=self.text)

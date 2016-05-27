@@ -1,0 +1,21 @@
+analyzer.py
+
+apriori_item_search를 tokens가 아닌 tweet_list로 시행하도록 수정.
+debug용으로 print문의 주석을 시 해제
+
+main_analyzer.py
+
+apriori_analysis를 추가
+target을 5월 1일까지의 전체트윗을대상으로 변경. 
+유저별 최대 트윗 분석갯수인 count를 추가.
+
+analyzer_model
+
+twitter-korean-text를 트윗 분석용으로 쓸지 안쓸지정하는 변수 추가.
+count추가 
+
+model
+
+tweet_type에 새로 추가된 변수들 추가
+
+

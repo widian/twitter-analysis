@@ -51,6 +51,21 @@ def analysis(analysis_type):
     print "END"
     return True
 
+def apriori_analysis(analysis_type):
+
+    start = time.time()
+    """ Follower tweets table made order ->
+    """
+    result = analyzer.tweet_reduce( analysis_type, tweet_list)
+
+    print "number of tweets : %d" % len(result)
+    print time.time() - start, " for get tweet list"
+    start = time.time()
+    
+    analyzer.apriori_item_search(result, 50)
+    print time.time() - start, " for analysis tweet list"
+    start = time.time()
+
 def make_user_list(user_list):
     if not isinstance(user_list, list):
         return None
@@ -62,12 +77,16 @@ def make_user_list(user_list):
 if __name__=='__main__':
 #    analysis(analyzer.produce_analysis_type(18))
 
-    analysis_type = analyzer.AnalysisType( since=datetime.datetime(2016, 4, 1, 0, 0, 0), 
+    analysis_type = analyzer.AnalysisType( 
+#                      since=datetime.datetime(2016, 4, 1, 0, 0, 0), 
                       until=datetime.datetime(2016, 5, 1, 0, 0, 0), 
                       follower_of=44771983,
+                      use_processor=False,
                       contain_retweet=0,
                       contain_english=0,
                       contain_username_mentioned=0,
                       contain_linked_tweet=0,
-                      least_tweet_per_user=100)
-    analysis(analysis_type)
+                      least_tweet_per_user=100,
+                      count=200)
+#    analysis(analysis_type)
+    apriori_analysis(analysis_type)

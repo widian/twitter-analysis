@@ -47,10 +47,14 @@ class AnalysisType(object):
     follower_of = None
     since = None
     until = None
-    def __init__(self, since=None, until=None, follower_of=None, 
+    count = None
+
+    use_processor = True
+    def __init__(self, since=None, until=None, follower_of=None, count=None,
             contain_linked_tweet=1, contain_username_mentioned=1, contain_english=1,
-            contain_retweet=1, least_tweet_per_user=0, user_list_type=0):
-        if not (isinstance(since, datetime.datetime) and isinstance(until, datetime.datetime)):
+            contain_retweet=1, least_tweet_per_user=0, user_list_type=0,
+            use_processor=True):
+        if not ((isinstance(since, datetime.datetime) or since is None) and (isinstance(until, datetime.datetime) or until is None)):
             raise Exception('since and until only accept datetime object')
         self.contain_retweet = contain_retweet
         self.contain_linked_tweet = contain_linked_tweet
@@ -60,7 +64,9 @@ class AnalysisType(object):
         self.since = since
         self.until = until
         self.follower_of = follower_of
+        self.count = count
         self.user_list_type = user_list_type 
+        self.use_processor = use_processor
     
     def add_filter_to_query(self, target_tweet_table, query):
         if self.since is not None:
@@ -100,7 +106,7 @@ class AnalysisType(object):
             subquery_userlist = session.query(UserList.user_id).filter(UserList.list_type == self.user_list_type).subquery()
             query = query.filter(target_tweet_table.user.in_(subquery_userlist))
 
-        pre_tweets = query.all()
+        pre_tweets = query.order_by(target_tweet_table.id.desc()).all()
         print (('GET a tweet set from tweet table %s') % target_tweet_table.__tablename__)
 
         user_query = session.query(target_tweet_table.user)
@@ -113,9 +119,9 @@ class AnalysisType(object):
         user_info = session.query(User).filter(User.id.in_(sub_query_user_of_tweets)).all()
 
         print ('GET a user info of tweet owner from user table %s, SQL End : %s sec' % (target_tweet_table, time.time() - start))
-        tweet_count_dict = dict()
+        statuses_count_info = dict()
         for item in user_info:
-            tweet_count_dict[item.id] = item.statuses_count
+            statuses_count_info[item.id] = item.statuses_count
 
         follower_list = list()
         if self.follower_of is not None:
@@ -126,27 +132,41 @@ class AnalysisType(object):
         print ('GET a follower info from relationship table %s')
         processor = TwitterKoreanProcessor()
         result = list()
+        tweet_count_dict = dict()
         for tweet in pre_tweets:
-            tokens = processor.tokenize(tweet.text)
-            pos_set = set([])
-            for token in tokens:
-                pos_set.add(token.pos)
-            if self.contain_english == 0 and 'Noun' not in pos_set:
-                continue
-            elif self.contain_english == 2 and 'Noun' in pos_set:
-                continue
-            if self.contain_linked_tweet == 0 and 'URL' in pos_set:
-                continue
-            elif self.contain_linked_tweet == 2 and 'URL' not in pos_set:
-                continue
-            if self.follower_of is not None and tweet.user not in follower_list:
-                continue
+            if self.use_processor:
+                """ twitter-korean-text를 트윗 수집때 쓸 경우에만 사용
+                    
+                """
+                tokens = processor.tokenize(tweet.text)
+                pos_set = set([])
+                for token in tokens:
+                    pos_set.add(token.pos)
+                if self.contain_english == 0 and 'Noun' not in pos_set:
+                    continue
+                elif self.contain_english == 2 and 'Noun' in pos_set:
+                    continue
+                if self.contain_linked_tweet == 0 and 'URL' in pos_set:
+                    continue
+                elif self.contain_linked_tweet == 2 and 'URL' not in pos_set:
+                    continue
+                if self.follower_of is not None and tweet.user not in follower_list:
+                    continue
             if self.least_tweet_per_user != 0:
-                if tweet.user not in tweet_count_dict:
+                if tweet.user not in statuses_count_info:
                     raise Exception('Subquery, query ERROR!')
                 else:
-                    if tweet_count_dict[tweet.user] < self.least_tweet_per_user:
+                    if statuses_count_info[tweet.user] < self.least_tweet_per_user:
                         continue
+            if self.count is not None:
+                if tweet.user in tweet_count_dict and \
+                   tweet_count_dict[tweet.user] == self.count:
+                    continue
+                if tweet.user in tweet_count_dict:
+                    print( tweet.id, tweet.user, tweet_count_dict[tweet.user])
+                    tweet_count_dict[tweet.user] += 1
+                else:
+                    tweet_count_dict[tweet.user] = 1
             result.append(tweet)
         print ('Finish to make tweet list')
         return result 
@@ -175,14 +195,14 @@ class AnalysisType(object):
 
     def make_type_data(self):
         return TweetType(
-                since=self.since, until=self.until, follower_of=self.follower_of,
+                since=self.since, until=self.until, follower_of=self.follower_of, count=self.count, use_processor=self.use_processor,
                 contain_retweet=self.contain_retweet, contain_english=self.contain_english,
                 contain_username_mentioned=self.contain_username_mentioned, contain_linked_tweet=self.contain_linked_tweet,
                 least_tweet_per_user=self.least_tweet_per_user,
                 user_list_type=self.user_list_type)
             
     def __repr__(self): 
-        return ("since : %s, until : %s, follower_of : %s, contain_retweet : %d, contain_english : %d, contain_username_mentioned : %d, contain_linked_tweet : %d, least_tweet_per_user : %d, user_list_type : %d" % (self.since, self.until, self.follower_of, self.contain_retweet, self.contain_english, self.contain_username_mentioned, self.contain_linked_tweet, self.least_tweet_per_user, self.user_list_type))
+        return ("since : %s, until : %s, count : %d, follower_of : %s, contain_retweet : %d, contain_english : %d, contain_username_mentioned : %d, contain_linked_tweet : %d, least_tweet_per_user : %d, user_list_type : %d" % (self.since, self.until, self.count, self.follower_of, self.contain_retweet, self.contain_english, self.contain_username_mentioned, self.contain_linked_tweet, self.least_tweet_per_user, self.user_list_type))
 
 class UserListType(object):
     #TODO : 아직 미사용중. 코드보강 및 알고리즘 보강이 필요

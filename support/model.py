@@ -274,7 +274,7 @@ class TweetType(Base):
 
     def __init__(self, 
             since=None, until=None, 
-            follower_of=None, 
+            follower_of=None, count=None, use_processor=None,
             contain_retweet=1, contain_english=1, contain_username_mentioned=1,
             contain_linked_tweet=1, least_tweet_per_user=0, user_list_type=0):
         if since is not None:
@@ -283,7 +283,14 @@ class TweetType(Base):
             self.until = until
         if follower_of is not None:
             self.follower_of = follower_of
-
+        if count is not None:
+            self.count = count
+        if use_processor is None:
+            self.use_processor = 1
+        else:
+            self.use_processor = 1 if use_processor else 0
+    
+        self.use_processor = use_processor
         self.contain_linked_tweet = contain_linked_tweet
         self.contain_username_mentioned = contain_username_mentioned
         self.contain_english = contain_english
@@ -298,6 +305,8 @@ class TweetType(Base):
 
     since = Column(DateTime)
     until = Column(DateTime, nullable=False, default=datetime.datetime.now())
+    count = Column(Integer)
+    count = Column(Integer, nullable=False, default=1)
 
     follower_of = Column(BigInteger)
     contain_retweet = Column(Integer, default=1)

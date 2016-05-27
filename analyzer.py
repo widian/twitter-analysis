@@ -86,6 +86,7 @@ def korean_analyze(user_id):
     plt.show()
 
 def tweet_reduce(analysis_type, table_list):
+    table_list.reverse()
     sess = Session()
     if analysis_type is None or not isinstance(analysis_type, AnalysisType):
         print("Unknown Analysis Type")
@@ -245,9 +246,6 @@ class SentenceAnalysis(object):
 
         print( 'Cosine:', cosine )
 
-    def pos_similarity(self):
-        pass
-
 def get_tweetlist_based_on_userlist():
     sess = Session()
     from support.model import Tweet_335204566_9
@@ -301,38 +299,46 @@ def pos_similarity_analyze():
     ps.print_tokens(tokens)
 
 
-def apriori_item_search(tokens, min_sup_value):
+def apriori_item_search(tweet_list, min_sup_value):
     """ apriori item으로 tokens를 frequent depend search.
     """
     apriori_support = AprioriSupport()
-    #TODO : tokens의 target을 특정 트윗 유저의 100 트윗을 대상으로
-    for item in tokens:
-        candidate = AnalyzeItem(len(item.text), item.pos, text=item.text)
-        apriori_support.add(candidate)
-    apriori_support.prune(min_sup_value)
-#    print( "item_set after prune : " , apriori_support.item_set )
-    for item in tokens:
-        candidate = AnalyzeItem(len(item.text), item.pos)
-        apriori_support.map_new_itemset(candidate)
+    processor = TwitterKoreanProcessor(normalization=False, stemming=False)
+    list_of_tokens = list()
+    for tweet in tweet_list:
+        tokens = processor.tokenize(tweet.text)
+        list_of_tokens.append(tokens)
 
-#    print( "candidate_set after map_new_itemset : ", apriori_support.candidate_set )
-#    print( "item_set after map_new_itemset: ", apriori_support.item_set )
+    for tokens in list_of_tokens:
+        for item in tokens:
+            candidate = AnalyzeItem(len(item.text), item.pos, text=item.text)
+            apriori_support.add(candidate)
+    apriori_support.prune(min_sup_value)
+    print( "item_set after prune : " , apriori_support.item_set )
+    for tokens in list_of_tokens:
+        for item in tokens:
+            candidate = AnalyzeItem(len(item.text), item.pos)
+            apriori_support.map_new_itemset(candidate)
+
+    print( "candidate_set after map_new_itemset : ", apriori_support.candidate_set )
+    print( "item_set after map_new_itemset: ", apriori_support.item_set )
     apriori_support.reset_apriori_variables()
     apriori_support.move_itemset()
-#    print( "item_set after move_itemset : ", apriori_support.item_set )
+    print( "item_set after move_itemset : ", apriori_support.item_set )
 
     while len(apriori_support.item_set) != 0:
         apriori_support.reset_apriori_variables()
-        for token in tokens:
-            item = AnalyzeItem(len(token.text), token.pos, text=token.text)
-            apriori_support.search_add(item)
-#        print ("candidate_set after search_add : ", apriori_support.candidate_set)
+        for tokens in list_of_tokens:
+            for token in tokens:
+                item = AnalyzeItem(len(token.text), token.pos, text=token.text)
+                apriori_support.search_add(item)
+        print ("candidate_set after search_add : ", apriori_support.candidate_set)
         apriori_support.prune(min_sup_value)
-#        print ("candidate_set after prune : ", apriori_support.candidate_set)
+        print ("candidate_set after prune : ", apriori_support.candidate_set)
         apriori_support.itemset_generate()
-#        print("item_set after prune : " ,apriori_support.item_set)
-#    print("candidate_set after apriori : " , apriori_support.candidate_set )
-
+        print("item_set after prune : " ,apriori_support.item_set)
+    print("candidate_set after apriori : " , apriori_support.candidate_set )
+    return apriori_support.candidate_set
 
 if __name__ == '__main__':
 #
