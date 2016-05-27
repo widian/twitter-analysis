@@ -85,6 +85,52 @@ def korean_analyze(user_id):
     plt.plot(x, y, 'o')
     plt.show()
 
+def tweet_reduce_dict(analysis_type, table_list):
+    table_list.reverse()
+    sess = Session()
+    if analysis_type is None or not isinstance(analysis_type, AnalysisType):
+        print("Unknown Analysis Type")
+        return False
+    tweet_type_query = analysis_type.make_query(sess)
+    type_result = tweet_type_query.first()
+    tweets = dict()
+    for table in table_list:
+        result = analysis_type.get_tweet_userdict(table, sess)
+        if result is not None:
+            for key, value in result.iteritems():
+                if key in tweets:
+                    tweets[key] = tweets[key] + value
+                else:
+                    tweets[key] = value
+    if type_result is not None:
+        """ cached된 typed tweet이 있을 때
+        """
+        print("DEFINED TYPE")
+    else:
+        tweet_type_data = analysis_type.make_type_data()
+        sess.add(tweet_type_data)
+        sess.commit()
+
+        type_result = tweet_type_query.first()
+        type_id = type_result.id
+
+        #TODO : TweetType에 트윗 검색이 캐시된 시간을 저장해놓는 용도를 추가
+        #       트윗을 재검색할 수 있도록?
+        """ 혹시 있을지 모르는 트윗 검색 캐시를 제거
+        """
+        sess.query(TweetSearchLog).filter(TweetSearchLog.tweet_type == type_id)\
+                                  .delete(synchronize_session='evaluate')
+        for user, tweet_list in tweets.iteritems():
+            """ tweets : key - user, value - list of tweets
+            """
+            for tweet in tweet_list:
+                tweet_search_log = TweetSearchLog(tweet.id, type_id)
+                sess.add(tweet_search_log)
+        sess.commit()
+    sess.close()
+    return tweets
+
+
 def tweet_reduce(analysis_type, table_list):
     table_list.reverse()
     sess = Session()
@@ -301,6 +347,7 @@ def pos_similarity_analyze():
 
 def apriori_item_search(tweet_list, min_sup_value):
     """ apriori item으로 tokens를 frequent depend search.
+        apriori에 들어오는 tweet_list는 유저별 tweet_list여야함
     """
     apriori_support = AprioriSupport()
     processor = TwitterKoreanProcessor(normalization=False, stemming=False)

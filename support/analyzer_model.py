@@ -93,22 +93,22 @@ class AnalysisType(object):
             query = query.filter(target_tweet_table.reply_to != None)
         return query
 
-    def get_tweet_list(self, target_tweet_table, session):
+
+    def get(self, target_tweet_table, session):
         query = session.query(target_tweet_table)
         query = self.add_filter_to_query(target_tweet_table, query)
         if query is None:
             return None
         print('SQL Start')
-        start = time.time()
         if self.user_list_type != 0:
             """ UserList로부터 타겟이 되는 user_id 리스트를 받아서 해당 아이디의 트윗만 수집
             """
             subquery_userlist = session.query(UserList.user_id).filter(UserList.list_type == self.user_list_type).subquery()
             query = query.filter(target_tweet_table.user.in_(subquery_userlist))
-
-        pre_tweets = query.order_by(target_tweet_table.id.desc()).all()
         print (('GET a tweet set from tweet table %s') % target_tweet_table.__tablename__)
+        return query.order_by(target_tweet_table.id.desc()).all()
 
+    def get_info(self, target_tweet_table, session):
         user_query = session.query(target_tweet_table.user)
         user_query = self.add_filter_to_query(target_tweet_table, user_query)
         if user_query is None:
@@ -118,7 +118,6 @@ class AnalysisType(object):
         sub_query_user_of_tweets = user_query.group_by(target_tweet_table.user).subquery()
         user_info = session.query(User).filter(User.id.in_(sub_query_user_of_tweets)).all()
 
-        print ('GET a user info of tweet owner from user table %s, SQL End : %s sec' % (target_tweet_table, time.time() - start))
         statuses_count_info = dict()
         for item in user_info:
             statuses_count_info[item.id] = item.statuses_count
@@ -128,46 +127,81 @@ class AnalysisType(object):
             follower_rows = session.query(Relationship).filter(Relationship.following == self.follower_of).all()
             for item in follower_rows:
                 follower_list.append(item.follower)
-
         print ('GET a follower info from relationship table %s')
+        return statuses_count_info, follower_list
+
+    def tweet_check(self, tweet, tweet_count_dict, statuses_count_info, follower_list):
+        if self.use_processor:
+            """ twitter-korean-text를 트윗 수집때 쓸 경우에만 사용
+            """
+            tokens = processor.tokenize(tweet.text)
+            pos_set = set([])
+            for token in tokens:
+                pos_set.add(token.pos)
+            if self.contain_english == 0 and 'Noun' not in pos_set:
+                return False 
+            elif self.contain_english == 2 and 'Noun' in pos_set:
+                return False
+            if self.contain_linked_tweet == 0 and 'URL' in pos_set:
+                return False
+            elif self.contain_linked_tweet == 2 and 'URL' not in pos_set:
+                return False
+            if self.follower_of is not None and tweet.user not in follower_list:
+                return False
+        if self.least_tweet_per_user != 0:
+            if tweet.user not in statuses_count_info:
+                raise Exception('Subquery, query ERROR!')
+            else:
+                if statuses_count_info[tweet.user] < self.least_tweet_per_user:
+                    return False
+        if self.count is not None:
+            if tweet.user in tweet_count_dict and \
+               tweet_count_dict[tweet.user] == self.count:
+                return False
+            if tweet.user in tweet_count_dict:
+#                print( tweet.id, tweet.user, tweet_count_dict[tweet.user])
+                tweet_count_dict[tweet.user] += 1
+            else:
+                tweet_count_dict[tweet.user] = 1
+        return True
+
+    def get_tweet_list(self, target_tweet_table, session):
+        start = time.time()
+
+        pre_tweets = self.get(target_tweet_table, session)
+        info = self.get_info(target_tweet_table, session)
+        if info is None:
+            return None
+        statuses_count_info, follower_list = info
+        print ('GET a user info of tweet owner from user table %s, SQL End : %s sec' % (target_tweet_table, time.time() - start))
+
         processor = TwitterKoreanProcessor()
         result = list()
         tweet_count_dict = dict()
         for tweet in pre_tweets:
-            if self.use_processor:
-                """ twitter-korean-text를 트윗 수집때 쓸 경우에만 사용
-                    
-                """
-                tokens = processor.tokenize(tweet.text)
-                pos_set = set([])
-                for token in tokens:
-                    pos_set.add(token.pos)
-                if self.contain_english == 0 and 'Noun' not in pos_set:
-                    continue
-                elif self.contain_english == 2 and 'Noun' in pos_set:
-                    continue
-                if self.contain_linked_tweet == 0 and 'URL' in pos_set:
-                    continue
-                elif self.contain_linked_tweet == 2 and 'URL' not in pos_set:
-                    continue
-                if self.follower_of is not None and tweet.user not in follower_list:
-                    continue
-            if self.least_tweet_per_user != 0:
-                if tweet.user not in statuses_count_info:
-                    raise Exception('Subquery, query ERROR!')
-                else:
-                    if statuses_count_info[tweet.user] < self.least_tweet_per_user:
-                        continue
-            if self.count is not None:
-                if tweet.user in tweet_count_dict and \
-                   tweet_count_dict[tweet.user] == self.count:
-                    continue
-                if tweet.user in tweet_count_dict:
-                    print( tweet.id, tweet.user, tweet_count_dict[tweet.user])
-                    tweet_count_dict[tweet.user] += 1
-                else:
-                    tweet_count_dict[tweet.user] = 1
-            result.append(tweet)
+            if self.tweet_check(tweet, tweet_count_dict, statuses_count_info, follower_list):
+                result.append(tweet)
+        print ('Finish to make tweet list')
+        return result 
+
+    def get_tweet_userdict(self, target_tweet_table, session):
+        start = time.time()
+        pre_tweets = self.get(target_tweet_table, session)
+        info = self.get_info(target_tweet_table, session)
+        if info is None:
+            return None
+        statuses_count_info, follower_list = info
+
+        print ('GET a user info of tweet owner from user table %s, SQL End : %s sec' % (target_tweet_table, time.time() - start))
+
+        processor = TwitterKoreanProcessor()
+        result = dict()
+        tweet_count_dict = dict()
+        for tweet in pre_tweets:
+            if self.tweet_check(tweet, tweet_count_dict, statuses_count_info, follower_list):
+                if tweet.user not in result:
+                    result[tweet.user] = list()
+                result[tweet.user].append(tweet)
         print ('Finish to make tweet list')
         return result 
 
@@ -175,6 +209,8 @@ class AnalysisType(object):
         query = session.query(TweetType)
         query = query.filter(TweetType.since == self.since)
         query = query.filter(TweetType.until == self.until)
+        query = query.filter(TweetType.count == self.count)
+        query = query.filter(TweetType.use_processor == self.use_processor)
         query = query.filter(TweetType.follower_of == self.follower_of)
         query = query.filter(TweetType.contain_retweet == self.contain_retweet)\
                        .filter(TweetType.contain_english == self.contain_english)\

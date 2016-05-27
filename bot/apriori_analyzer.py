@@ -78,7 +78,7 @@ def apriori_analysis(analysis_type):
                 #TODO : apriori_result를 분석해서 봇 분리해내야함
                 result_users.append(key)
                 break
-    sess = Session()
+
     type_id = analysis_type.get_type_id(sess)
     print "estimated bot accounts : ", result_users
     for user in result_users:
@@ -114,5 +114,5 @@ if __name__=='__main__':
                       contain_linked_tweet=0,
                       least_tweet_per_user=100,
                       count=200)
-    analysis(analysis_type)
-#    apriori_analysis(analysis_type)
+#    analysis(analysis_type)
+    apriori_analysis(analysis_type)

@@ -306,7 +306,7 @@ class TweetType(Base):
     since = Column(DateTime)
     until = Column(DateTime, nullable=False, default=datetime.datetime.now())
     count = Column(Integer)
-    count = Column(Integer, nullable=False, default=1)
+    use_processor = Column(Integer, nullable=False, default=1)
 
     follower_of = Column(BigInteger)
     contain_retweet = Column(Integer, default=1)
@@ -315,6 +315,18 @@ class TweetType(Base):
     contain_linked_tweet = Column(Integer, default=1)
     least_tweet_per_user = Column(Integer, default=0)
     user_list_type = Column(Integer, default=None)
+
+class EstimatedBotUser(Base):
+    __tablename__ = 'estimated_bot_user_list'
+
+    def __init__(self, type_id, user_id):
+        self.user_id = user_id
+        self.type_id = type_id
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    type_id = Column(Integer, nullable=False)
+    user_id = Column(BigInteger, nullable=False)
+    created_time = Column(DateTime, nullable=False, default=datetime.datetime.now())
 
 class UserList(Base):
     __tablename__ = 'user_list'
