@@ -175,6 +175,7 @@ def analysis_tweets(analysis_type, tweet_list):
     processor = TwitterKoreanProcessor()
     word_dict = dict()
     word_count_dict = dict()
+    temp_count = 0
     for tweet in tweet_list:
         tokens = processor.tokenize(tweet.text)
         for token in tokens:
@@ -195,7 +196,11 @@ def analysis_tweets(analysis_type, tweet_list):
                 word_count_dict[word.id] = 1
             else:
                 word_count_dict[word.id] += 1
+            temp_count += 1
+            if temp_count % 5000 == 0:
+                print("{0} words counted".format(temp_count))
     tweet_type_data = analysis_type.make_query(sess).first()
+    print("Word Cound Dict generated")
     if tweet_type_data is None:
         raise Exception('We need tweet search log type')
 

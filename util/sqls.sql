@@ -254,3 +254,32 @@ ADD COLUMN `updated_date` DATETIME NULL COMMENT '' AFTER `created_date`;
 INSERT INTO user_new (id, screen_name, statuses_count, name, follower_count, tweet_collected_date, created_date,language_type,
 authorized,protected) SELECT * FROM user;
 RENAME TABLE user TO user_old, user_new TO user;
+
+# Get latest 30 tweets per user in estimated_bot_user_list and tweet_search_log
+set @num := 0, @user := '';
+
+SELECT 
+    *
+FROM
+    (SELECT 
+        tweet_1364028594_2.*,
+            @num:=IF(@user = tweet_1364028594_2.user, @num + 1, 1) AS row_number,
+            @user:=tweet_1364028594_2.user AS dummy
+    FROM
+        tweet_1364028594_2
+    WHERE
+        user IN (SELECT 
+                user_id
+            FROM
+                estimated_bot_user_list
+            WHERE
+                type_id = 8)
+            AND id IN (SELECT 
+                tweet_id
+            FROM
+                tweet_search_log
+            WHERE
+                tweet_type = 8)
+    ORDER BY user, id desc) AS x
+WHERE
+    x.row_number <= 30;

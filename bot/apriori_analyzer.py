@@ -82,15 +82,16 @@ def apriori_analysis(analysis_type):
     type_id = analysis_type.get_type_id(sess)
     print "estimated bot accounts : ", result_users
     for user in result_users:
-        user_exist = sess.query(EstimatedBotUser).filter(EstimatedBotUser.user_id==user.id)\
+        user_exist = sess.query(EstimatedBotUser).filter(EstimatedBotUser.user_id==user)\
                                                  .filter(EstimatedBotUser.type_id==type_id)\
                                                  .first()
         if user_exist is None:
-            sess.add(EstimatedBotUser(type_id, user.id))
+            sess.add(EstimatedBotUser(type_id, user))
     sess.commit()
 
     print time.time() - start, " for analysis tweet list"
     start = time.time()
+    sess.close()
 
 def make_user_list(user_list):
     if not isinstance(user_list, list):
@@ -104,9 +105,9 @@ if __name__=='__main__':
 #    analysis(analyzer.produce_analysis_type(18))
 
     analysis_type = analyzer.AnalysisType( 
-                      since=datetime.datetime(2016, 4, 1, 0, 0, 0), 
-                      until=datetime.datetime(2016, 5, 1, 0, 0, 0), 
-                      follower_of=44771983,
+                      since=datetime.datetime(2016, 2, 1, 0, 0, 0), 
+                      until=datetime.datetime(2016, 3, 1, 0, 0, 0), 
+                      follower_of=155884548,
                       use_processor=False,
                       contain_retweet=0,
                       contain_english=0,
