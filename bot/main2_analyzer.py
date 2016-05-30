@@ -52,6 +52,30 @@ def analysis(analysis_type):
     print "END"
     return True
 
+def analysis_without_bot(analysis_type):
+    start = time.time()
+
+    """ Follower tweets table made order ->
+    """
+    sess = Session()
+    type_id = analysis_type.get_type_id(sess)
+    id_list = sess.query(EstimatedBotUser).filter(EstimatedBotUser.type_id == type_id).all()
+    id_list = map(lambda x: x.user_id, id_list)
+
+    result = analyzer.tweet_reduce( analysis_type , tweet_list)
+    print "number of tweets : %d" % len(result)
+    print time.time() - start, " for get tweet list"
+    start = time.time()
+
+    print "number of words : %d" % analyzer.analysis_tweets_without_bot(analysis_type, result, id_list)
+    print time.time() - start, " for analysis tweet list"
+    start = time.time()
+
+    analyzer.export_result_to_csv(analysis_type.get_type_id(sess), is_without_bot=True)
+    print time.time() - start, " for export result to csv file"
+    sess.close()
+    print "END"
+
 def apriori_analysis(analysis_type):
 
     start = time.time()
@@ -82,11 +106,11 @@ def apriori_analysis(analysis_type):
     type_id = analysis_type.get_type_id(sess)
     print "estimated bot accounts : ", result_users
     for user in result_users:
-        user_exist = sess.query(EstimatedBotUser).filter(EstimatedBotUser.user_id==user.id)\
+        user_exist = sess.query(EstimatedBotUser).filter(EstimatedBotUser.user_id==user)\
                                                  .filter(EstimatedBotUser.type_id==type_id)\
                                                  .first()
         if user_exist is None:
-            sess.add(EstimatedBotUser(type_id, user.id))
+            sess.add(EstimatedBotUser(type_id, user))
     sess.commit()
 
     print time.time() - start, " for analysis tweet list"
@@ -104,9 +128,9 @@ if __name__=='__main__':
 #    analysis(analyzer.produce_analysis_type(18))
 
     analysis_type = analyzer.AnalysisType( 
-                      since=datetime.datetime(2016, 2, 1, 0, 0, 0), 
+                      since=datetime.datetime(2016, 2, 21, 0, 0, 0), 
                       until=datetime.datetime(2016, 3, 1, 0, 0, 0), 
-                      follower_of=155884548,
+                      follower_of=1364028594,
                       use_processor=False,
                       contain_retweet=0,
                       contain_english=0,
@@ -114,5 +138,6 @@ if __name__=='__main__':
                       contain_linked_tweet=0,
                       least_tweet_per_user=100,
                       count=200)
-    analysis(analysis_type)
-#    apriori_analysis(analysis_type)
+#    analysis(analysis_type)
+    apriori_analysis(analysis_type)
+    analysis_without_bot(analysis_type)

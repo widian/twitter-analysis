@@ -371,7 +371,7 @@ class WordTable(Base):
     unknown = Column(Integer, nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.datetime.now())
 
-class WordAnalysisLog(Base):
+class WordAnalysisLogBase(object):
     __tablename__ = 'word_analysis_log'
 
     def __init__(self, word_id, word_count, search_log_type):
@@ -380,12 +380,24 @@ class WordAnalysisLog(Base):
         self.search_log_type = search_log_type
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    word_id = Column(Integer, ForeignKey('word_table.id'), nullable=False)
-    word = relationship("WordTable")
-    search_log_type = Column(Integer, ForeignKey('tweet_type.id'), nullable=False, index=True)
-    tweet_type = relationship("TweetType")
     word_count = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime, nullable=False, default=datetime.datetime.now())
+
+class WordAnalysisLog(WordAnalysisLogBase, Base):
+    __tablename__ = 'word_analysis_log'
+    
+    word = relationship("WordTable")
+    tweet_type = relationship("TweetType")
+    word_id = Column(Integer, ForeignKey('word_table.id'), nullable=False)
+    search_log_type = Column(Integer, ForeignKey('tweet_type.id'), nullable=False, index=True)
+
+class WordAnalysisLogWithoutBot(WordAnalysisLogBase, Base):
+    __tablename__ = 'w_analysis_without_bot'
+    
+    word = relationship("WordTable")
+    tweet_type = relationship("TweetType")
+    word_id = Column(Integer, ForeignKey('word_table.id'), nullable=False)
+    search_log_type = Column(Integer, ForeignKey('tweet_type.id'), nullable=False, index=True)
 
 
 class Tweet_335204566_1(TweetBase, Base):

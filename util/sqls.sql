@@ -283,3 +283,25 @@ FROM
     ORDER BY user, id desc) AS x
 WHERE
     x.row_number <= 30;
+
+# Word Analysis Without bot account 테이블에서 특정 트윗타입의 단어를 카운트 역순으로 가져옴
+SELECT
+    w_analysis_without_bot.search_log_type,
+    w_analysis_without_bot.word_id,
+    w_analysis_without_bot.word_count,
+    word_table.word,
+    word_table.pos
+FROM
+    twitter.w_analysis_without_bot,
+    twitter.word_table
+WHERE
+    w_analysis_without_bot.word_id = word_table.id
+        AND w_analysis_without_bot.word_id IN (SELECT
+            word_id
+        FROM
+            w_analysis_without_bot
+        WHERE
+            search_log_type = 8)
+    and (word_table.pos = "Noun" or word_table.pos="Hashtag")
+GROUP BY word
+ORDER BY word_count DESC;
