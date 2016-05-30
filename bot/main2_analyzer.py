@@ -128,7 +128,7 @@ if __name__=='__main__':
 #    analysis(analyzer.produce_analysis_type(18))
 
     analysis_type = analyzer.AnalysisType( 
-                      since=datetime.datetime(2016, 2, 21, 0, 0, 0), 
+                      since=datetime.datetime(2016, 2, 29, 0, 0, 0), 
                       until=datetime.datetime(2016, 3, 1, 0, 0, 0), 
                       follower_of=1364028594,
                       use_processor=False,
@@ -139,5 +139,5 @@ if __name__=='__main__':
                       least_tweet_per_user=100,
                       count=200)
 #    analysis(analysis_type)
-    apriori_analysis(analysis_type)
+#    apriori_analysis(analysis_type)
     analysis_without_bot(analysis_type)

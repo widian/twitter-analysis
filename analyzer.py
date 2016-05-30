@@ -169,74 +169,44 @@ def tweet_reduce(analysis_type, table_list):
         sess.commit()
     sess.close()
     return tweets
-def do_work(sess, token, result):
-    word_cache_query = sess.query(WordTable).filter(WordTable.word == token.text)\
-                         .filter(WordTable.pos == token.pos)
-    word_cache = word_cache_query.first()
-    if word_cache is None:
-        sess.add(WordTable(token.text, token.pos, token.unknown))
-        sess.commit()
-        word_cache = word_cache_query.first()
-    word = Word(word_cache.word, word_cache.pos, word_cache.id)
-    result.put(word)
-    return
 
 def analysis_tweets_without_bot(analysis_type, tweet_list, bot_list):
-    from multiprocessing import Process,Queue
     sess = Session()
     processor = TwitterKoreanProcessor()
     word_dict = dict()
     word_count_dict = dict()
-    word_cache_dict = dict()
     temp_count = 0
     for tweet in tweet_list:
         if tweet.user in bot_list:
             continue
         tokens = processor.tokenize(tweet.text)
         for token in tokens:
-            process_list = list()
-            result = Queue()
             if token.pos == 'URL':
                 continue
             if token.text not in word_dict:
-                process_list.append( Process(target=do_work, args=(sess, token, result)))
-                continue
-
+                word_cache_query = sess.query(WordTable).filter(WordTable.word == token.text)\
+                                     .filter(WordTable.pos == token.pos)
+                word_cache = word_cache_query.first()
+                if word_cache is None:
+                    sess.add(WordTable(token.text, token.pos, token.unknown))
+                    sess.commit()
+                    word_cache = word_cache_query.first()
+                word = Word(word_cache.word, word_cache.pos, word_cache.id)
+                word_dict[token.text] = word
             word = word_dict[token.text]
             if word.id not in word_count_dict:
                 word_count_dict[word.id] = 1
             else:
                 word_count_dict[word.id] += 1
             temp_count += 1
-
             if temp_count % 5000 == 0:
                 print("{0} words counted".format(temp_count))
-        for item in process_list:
-            item.start()
-        for item in process_list:
-            item.join()
-        result.put('END')
-
-        while True:
-            word = result.get()
-            if word == 'END':
-                break
-            else:
-                if word.id not in word_count_dict:
-                    word_count_dict[word.id] = 1
-                else:
-                    word_count_dict[word.id] += 1
-                temp_count += 1
-
-                if temp_count % 5000 == 0:
-                    print("{0} words counted".format(temp_count))
     tweet_type_data = analysis_type.make_query(sess).first()
     print("Word Cound Dict generated")
     if tweet_type_data is None:
         raise Exception('We need tweet search log type')
 
     #NOTE : DELETE
-    #NOTE : WordAnalysisLogWithoutBot
     sess.query(WordAnalysisLogWithoutBot).filter(WordAnalysisLogWithoutBot.search_log_type == tweet_type_data.id)\
                                .delete(synchronize_session='evaluate')
     count = 0
@@ -308,16 +278,12 @@ def produce_analysis_type(type_number):
                                  user_list_type=analysis_type_result.user_list_type)
     return analysis_type
 
-def export_result_to_csv(tweet_type, is_without_bot=False):
+def export_result_to_csv(tweet_type):
     sess = Session()
     items = sess.query(WordAnalysisLog).filter(WordAnalysisLog.search_log_type == tweet_type)\
                                        .order_by(desc(WordAnalysisLog.word_count))\
                                        .all()
-    f = None
-    if is_without_bot:
-        f = open(".././data/%03d_analysis_without_bot.csv" % tweet_type, 'w')
-    else:
-        f = open(".././data/%03d_analysis.csv" % tweet_type, 'w')
+    f = open(".././data/%03d_analysis.csv" % tweet_type, 'w')
     f.write('word, pos, is_unknown, count\n')
     for item in items:
         text = "%s, %s, %d, %s\n" % (item.word.word, item.word.pos, item.word.unknown, item.word_count)
@@ -506,6 +472,7 @@ if __name__ == '__main__':
         apriori_item_search(tokens, 3)
 
     apriory_similarity_test()
+
 #    get_tweetlist_based_on_tweet_search_log()
 #    pos_similarity_analyze()
 #    similarity_test()
