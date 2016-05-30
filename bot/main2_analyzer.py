@@ -128,9 +128,9 @@ if __name__=='__main__':
 #    analysis(analyzer.produce_analysis_type(18))
 
     analysis_type = analyzer.AnalysisType( 
-                      since=datetime.datetime(2016, 2, 1, 0, 0, 0), 
+                      since=datetime.datetime(2016, 2, 29, 0, 0, 0), 
                       until=datetime.datetime(2016, 3, 1, 0, 0, 0), 
-                      follower_of=155884548,
+                      follower_of=1364028594,
                       use_processor=False,
                       contain_retweet=0,
                       contain_english=0,
