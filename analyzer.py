@@ -219,17 +219,17 @@ def analysis_tweets_without_bot(analysis_type, tweet_list, bot_list):
 
 
 def analysis_tweets(analysis_type, tweet_list):
-    from multiprocessing import Process,Queue
-
-    def do_work(sess, word_dict, tweet, result):
-        processor = TwitterKoreanProcessor()
-        new_word_count_dict = dict()
-        new_word_dict = dict()
+    sess = Session()
+    processor = TwitterKoreanProcessor()
+    word_dict = dict()
+    word_count_dict = dict()
+    temp_count = 0
+    for tweet in tweet_list:
         tokens = processor.tokenize(tweet.text)
         for token in tokens:
             if token.pos == 'URL':
                 continue
-            if token.text not in word_dict or token.text not in new_word_dict:
+            if token.text not in word_dict:
                 word_cache_query = sess.query(WordTable).filter(WordTable.word == token.text)\
                                      .filter(WordTable.pos == token.pos)
                 word_cache = word_cache_query.first()
@@ -238,68 +238,15 @@ def analysis_tweets(analysis_type, tweet_list):
                     sess.commit()
                     word_cache = word_cache_query.first()
                 word = Word(word_cache.word, word_cache.pos, word_cache.id)
-                new_word_dict[token.text] = word
-            elif token.text in word_dict:
-                word = word_dict[token.text]
-            else:
-                word = new_word_dict[token.text]
-
+                word_dict[token.text] = word
+            word = word_dict[token.text]
             if word.id not in word_count_dict:
-                new_word_count_dict[word.id] = 1
+                word_count_dict[word.id] = 1
             else:
-                new_word_count_dict[word.id] += 1
-        dict_result = dict()
-        dict_result['new_word_dict'] = new_word_dict
-        dict_result['new_word_count'] = new_word_count
-        result.put(dict_result)
-        return
-    
-    def merge_word_dict(word_dict, new_word_dict):
-        for key, value in new_word_dict.iteritems():
-            if key in word_dict:
-                continue
-            else:
-                word_dict[key] = value
-        return word_dict
-
-    def merge_word_count_dict(word_count_dict, new_word_count_dict):
-        for key, value in new_word_count_dict.iteritems():
-            if key in word_count_dict:
-                word_count_dict[key] += value
-            else:
-                word_count_dict[key] = value
-        return word_count_dict
-
-    def counted_words_number(new_word_count_dict):
-        count = 0
-        for key, value in new_word_count_dict.iteritems():
-            count += value
-        return count
-    sess = Session()
-    word_dict = dict()
-    word_count_dict = dict()
-    temp_count = 0
-    result = Queue()
-    processes = list()
-    for tweet in tweet_list:
-        if len(processes) == 8:
-            for item in processes:
-                item.start()
-            for item in processes:
-                item.join()
-            result.put('END!')
-            while True:
-                result_item = result.get()
-                if result_item == 'END!':
-                    break
-                word_dict = merge_word_dict(word_dict, result_item['new_word_dict'])
-                word_count_dict = merge_word_count_dict(word_count_dict, result_item['new_word_count'])
-                temp_count += counted_words_number(result_item['new_word_dict'])
+                word_count_dict[word.id] += 1
+            temp_count += 1
+            if temp_count % 5000 == 0:
                 print("{0} words counted".format(temp_count))
-            processes = list()
-        else:
-            process = Process(target=do_work, args=(sess, word_dict, tweet, result))
-            processes.append(process)
     tweet_type_data = analysis_type.make_query(sess).first()
     print("Word Cound Dict generated")
     if tweet_type_data is None:
