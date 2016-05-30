@@ -131,17 +131,18 @@ def make_user_list(user_list):
 if __name__=='__main__':
 #    analysis(analyzer.produce_analysis_type(18))
 
-    analysis_type = analyzer.AnalysisType( 
-                      since=datetime.datetime(2016, 2, 21, 0, 0, 0), 
-                      until=datetime.datetime(2016, 3, 1, 0, 0, 0), 
-                      follower_of=1364028594,
-                      use_processor=False,
-                      contain_retweet=0,
-                      contain_english=0,
-                      contain_username_mentioned=0,
-                      contain_linked_tweet=0,
-                      least_tweet_per_user=100,
-                      count=200)
+#    analysis_type = analyzer.AnalysisType( 
+#                      since=datetime.datetime(2016, 2, 21, 0, 0, 0), 
+#                      until=datetime.datetime(2016, 3, 1, 0, 0, 0), 
+#                      follower_of=1364028594,
+#                      use_processor=False,
+#                      contain_retweet=0,
+#                      contain_english=0,
+#                      contain_username_mentioned=0,
+#                      contain_linked_tweet=0,
+#                      least_tweet_per_user=100,
+#                      count=200)
+    analysis_type = analyzer.produce_analysis_type(9)
     analysis_without_bot(analysis_type)
 #    analysis(analysis_type)
 #    apriori_analysis(analysis_type)

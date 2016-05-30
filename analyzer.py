@@ -269,6 +269,8 @@ def produce_analysis_type(type_number):
 
     analysis_type = AnalysisType(since=analysis_type_result.since,
                                  until=analysis_type_result.until,
+                                 count=analysis_type_result.count,
+                                 use_processor=True if analysis_type_result.use_processor == 1 else False,
                                  follower_of=analysis_type_result.follower_of,
                                  contain_linked_tweet=analysis_type_result.contain_linked_tweet,
                                  contain_username_mentioned=analysis_type_result.contain_username_mentioned,
