@@ -170,6 +170,12 @@ def tweet_reduce(analysis_type, table_list):
     sess.close()
     return tweets
 
+def get_userset_from_tweetlist(tweet_list):
+    user_set = set([])
+    for tweet in tweet_list:
+        user_set.add(tweet.user)
+    return user_set
+
 def analysis_tweets_without_bot(analysis_type, tweet_list, bot_list):
     sess = Session()
     processor = TwitterKoreanProcessor()
