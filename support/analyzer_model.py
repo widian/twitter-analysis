@@ -290,4 +290,18 @@ class PrintString(object):
             print("]", end=end)
         elif isinstance(tokens, tuple):
             print(")", end=end)
+    def print_tokens_plain(self, tokens, end="\n"):
+        """ version for plain text 
+        """
+
+        for t in tokens:
+            if t != tokens[-1]:
+                elem_end = ", "
+            else:
+                elem_end = "\n"
+
+            if isinstance(t, (list, tuple)):
+                self.print_tokens_plain(t, end=elem_end)
+            else:
+                print(t, end=elem_end)
 

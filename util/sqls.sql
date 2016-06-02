@@ -286,22 +286,48 @@ WHERE
 
 # Word Analysis Without bot account 테이블에서 특정 트윗타입의 단어를 카운트 역순으로 가져옴
 SELECT
-    w_analysis_without_bot.search_log_type,
-    w_analysis_without_bot.word_id,
-    w_analysis_without_bot.word_count,
+    word_analysis_log.search_log_type,
+    word_analysis_log.word_id,
+    word_analysis_log.word_count,
     word_table.word,
     word_table.pos
 FROM
-    twitter.w_analysis_without_bot,
+    twitter.word_analysis_log,
     twitter.word_table
 WHERE
-    w_analysis_without_bot.word_id = word_table.id
-        AND w_analysis_without_bot.word_id IN (SELECT
+    word_analysis_log.word_id = word_table.id
+        AND word_analysis_log.word_id IN (SELECT
             word_id
         FROM
-            w_analysis_without_bot
+            word_analysis_log
         WHERE
             search_log_type = 8)
+    and word_analysis_log.search_log_type = 8
     and (word_table.pos = "Noun" or word_table.pos="Hashtag")
-GROUP BY word
+GROUP BY word_table.word
 ORDER BY word_count DESC;
+
+#두개 word_analysis 테이블로부터 word_id별로 count를 비교하기 위한 쿼리 (used inner join)
+SELECT
+    #word_analysis_log.word_id,
+    t2.word_count as before_c
+    ,t1.word_count as filtered_c
+    ,(t1.word_count / t2.word_count) as ratio
+    ,word_table.word as word
+    #,word_table.pos
+FROM
+    twitter.w_analysis_without_bot as t1 left outer join 
+    twitter.word_analysis_log as t2 on t1.word_id=t2.word_id,
+    twitter.word_table
+WHERE
+    t1.word_id = word_table.id
+        AND t1.word_id IN (SELECT
+            word_id
+        FROM
+            word_analysis_log
+        WHERE
+            search_log_type = 8)
+    and t1.search_log_type = 8
+    and (word_table.pos="Hashtag")
+GROUP BY word_table.word
+ORDER BY t2.word_count DESC

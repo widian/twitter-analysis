@@ -96,13 +96,17 @@ def apriori_analysis(analysis_type):
     apriori_result = dict()
     result_users = list()
     for key, value in result.iteritems():
+        """ Minimum Support Value를 User의 트윗수 * 2로 시작하도록 하였다
+        """
         apriori_result[key] = analyzer.apriori_item_search(value, len(value) * 2)
         for item_key, item_value in apriori_result[key].iteritems():
             """ item_key : ItemValue.make_key()
                 item_value : ItemValue
             """
             if item_value.value > len(value) and item_value.item.len() > 3 and len(value) > 15:
-                #TODO : apriori_result를 분석해서 봇 분리해내야함
+                """ 최소 유저의 트윗 갯수가 15개 이상이며 연속된 아이템의 길이가 3보다 크면
+                    봇 계정으로 판단하도록 하였음
+                """
                 result_users.append(key)
                 break
     sess = Session()
@@ -131,18 +135,17 @@ def make_user_list(user_list):
 if __name__=='__main__':
 #    analysis(analyzer.produce_analysis_type(18))
 
-#    analysis_type = analyzer.AnalysisType( 
-#                      since=datetime.datetime(2016, 2, 21, 0, 0, 0), 
-#                      until=datetime.datetime(2016, 3, 1, 0, 0, 0), 
-#                      follower_of=1364028594,
-#                      use_processor=False,
-#                      contain_retweet=0,
-#                      contain_english=0,
-#                      contain_username_mentioned=0,
-#                      contain_linked_tweet=0,
-#                      least_tweet_per_user=100,
-#                      count=200)
-    analysis_type = analyzer.produce_analysis_type(9)
-    analysis_without_bot(analysis_type)
-#    analysis(analysis_type)
+    analysis_type = analyzer.AnalysisType( 
+                      since=datetime.datetime(2016, 2, 21, 0, 0, 0), 
+                      until=datetime.datetime(2016, 3, 1, 0, 0, 0), 
+                      follower_of=1364028594,
+                      use_processor=False,
+                      contain_retweet=0,
+                      contain_english=0,
+                      contain_username_mentioned=0,
+                      contain_linked_tweet=0,
+                      least_tweet_per_user=100,
+                      count=200)
+#    analysis_type = analyzer.produce_analysis_type(9)
+    analysis(analysis_type)
 #    apriori_analysis(analysis_type)
