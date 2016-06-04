@@ -7,8 +7,7 @@ sys.path.insert(0, os.path.abspath('..'))
 
 import datetime, time
 import analyzer
-from support.model import Tweet_335204566, Tweet_281916923, Tweet_44771983, Tweet_155884548, Tweet_1364028594
-
+from support.model import Tweets
 from support.model import EstimatedBotUser
 from support.mysql_support import Session
 """ AnalysisType Explanation
@@ -25,8 +24,7 @@ from support.mysql_support import Session
     until : until까지의 트윗만 검색
 
 """
-tweet_list = Tweet_335204566 + Tweet_281916923 + Tweet_44771983 + Tweet_155884548 + Tweet_1364028594
-
+tweet_list = Tweets
 def recollect(type_number):
     analysis_type = analyzer.produce_analysis_type(type_number)
     print "type_number :", type_number, analysis_type
@@ -128,14 +126,16 @@ def apriori_analysis(analysis_type):
     start = time.time()
     sess.close()
 
-def make_user_list(user_list):
+def make_user_list(user_list, comment):
     if not isinstance(user_list, list):
         return None
     sess = Session()
-    user_list_type = UserListType()
+    user_list_type = UserListType(comment)
     return user_list_type.add_user_list(sess, user_list)
 
     sess.close()
+
+
 if __name__=='__main__':
 #    analysis(analyzer.produce_analysis_type(18))
 

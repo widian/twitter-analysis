@@ -46,6 +46,11 @@ class TweetBase(object):
     collected_date = Column(DateTime, nullable=False, default=datetime.datetime.now())
     reply_to = Column(BigInteger)
 
+    @classmethod
+    def __repr__(self):
+        return "Table<{0}>".format(self.__tablename__)
+
+
 class Tweet(Base):
     __tablename__ = 'tweet'
 
@@ -399,6 +404,23 @@ class WordAnalysisLogWithoutBot(WordAnalysisLogBase, Base):
     word_id = Column(Integer, ForeignKey('word_table.id'), nullable=False)
     search_log_type = Column(Integer, ForeignKey('tweet_type.id'), nullable=False, index=True)
 
+class UserListType(Base):
+    __tablename__ = 'user_list_type'
+
+    def __init__(self, comment):
+        self.comment = comment
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    created_time = Column(DateTime, nullable=False, default=datetime.datetime.now())
+
+    comment = Column(String(256))
+
+
+class Tweet_test_dataset(TweetBase, Base):
+
+    __tablename__ = 'tweet_test_dataset'
+    userlist_type = Column(Integer, nullable=False, default=0)
+
 
 class Tweet_335204566_1(TweetBase, Base):
     __tablename__ = 'tweet_335204566_1'
@@ -644,6 +666,8 @@ Tweet_155884548.append(Tweet_155884548_17)
 Tweet_1364028594 = list()
 Tweet_1364028594.append(Tweet_1364028594_1)
 Tweet_1364028594.append(Tweet_1364028594_2)
+
+Tweets = Tweet_335204566 + Tweet_281916923 + Tweet_44771983 + Tweet_155884548 + Tweet_1364028594
 
 if __name__ == '__main__':
     pass
