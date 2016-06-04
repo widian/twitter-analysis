@@ -2,7 +2,7 @@
 # -*- coding:utf8 -*-
 
 import datetime
-from sqlalchemy import Integer, String, BigInteger, Column, DateTime, Index, Unicode
+from sqlalchemy import Integer, String, BigInteger, Column, DateTime, Index, Unicode, Float 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
@@ -415,10 +415,31 @@ class UserListType(Base):
 
     comment = Column(String(256))
 
+class AnalysisApriori(Base):
+    __tablename__ = 'analysis_apriori'
+
+    def __init__(self, userlist_type, min_sup, phrase_length, percentage):
+        self.userlist_type = userlist_type
+        self.min_sup = min_sup
+        self.phrase_length = phrase_length
+        self.percentage = percentage
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    created_time = Column(DateTime, nullable=False, default=datetime.datetime.now())
+
+    userlist_type = Column(Integer, nullable=False)
+    min_sup = Column(Float, nullable=False)
+    phrase_length = Column(Integer, nullable=False)
+    percentage = Column(Float, nullable=False)
 
 class Tweet_test_dataset(TweetBase, Base):
-
     __tablename__ = 'tweet_test_dataset'
+    def __init__(self, tweet, type_id):
+        self.id = tweet.id
+        self.text = tweet.text
+        self.user = tweet.user
+        self.created_at = tweet.created_at
+        self.userlist_type = type_id
     userlist_type = Column(Integer, nullable=False, default=0)
 
 

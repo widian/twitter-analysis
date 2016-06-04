@@ -123,20 +123,57 @@ def apriori_analysis(analysis_type):
     sess.commit()
 
     print time.time() - start, " for analysis tweet list"
+    sess.close()
+
+def test_apriori(userlist_type, min_sup, phrase_length):
+    from support.model import Tweet_test_dataset
     start = time.time()
-    sess.close()
-
-def make_user_list(user_list, comment):
-    if not isinstance(user_list, list):
-        return None
     sess = Session()
-    user_list_type = UserListType(comment)
-    return user_list_type.add_user_list(sess, user_list)
-
+    #NOTE : result(dict) [ user_id : list of tweets ]
+    query_result = sess.query(Tweet_test_dataset).filter(Tweet_test_dataset.userlist_type == userlist_type).all()
+    result = dict()
+    for tweet in query_result:
+        if tweet.user not in result:
+            result[tweet.user] = list()
+        result[tweet.user].append(tweet)
+    print "number of users : %d" % len(result)
+    count = 0
+    for key, value in result.iteritems():
+        count += len(value)
+    print "number of tweets : %d" % count
+    print time.time() - start, " for get tweet list"
+    start = time.time()
+    apriori_result = dict()
+    result_users = list()
+    for key, value in result.iteritems():
+        """ Minimum Support Value를 User의 트윗수 * min_sup로 시작하도록 하였다
+        """
+        apriori_result[key] = analyzer.apriori_item_search(value, len(value) * min_sup)
+        for item_key, item_value in apriori_result[key].iteritems():
+            """ item_key : ItemValue.make_key()
+                item_value : ItemValue
+            """
+            if item_value.value > len(value) and item_value.item.len() > phrase_length:
+                """ 최소 유저의 트윗 갯수가 15개 이상이며 연속된 아이템의 길이가 phrase_length보다 크면
+                    봇 계정으로 판단하도록 하였음
+                """
+                result_users.append(key)
+                break
+    print "estimated bot accounts : ", result_users
+    from support.model import AnalysisApriori
+    sess.add(AnalysisApriori(userlist_type, min_sup, phrase_length, len(result_users) / float(len(result))))
+    sess.commit()
     sess.close()
+    print time.time() - start, " for analysis tweet list"
 
 
 if __name__=='__main__':
+    for userlist_type in xrange(1, 4):
+        for phrase_length in xrange(3, 9):
+            for sup in xrange(5, 30):
+                min_sup = min_sup / 10.0
+                test_apriori(userlist_type, min_sup, phrase_length)
+
 #    analysis(analyzer.produce_analysis_type(18))
 
 #    analysis_type = analyzer.AnalysisType( 
@@ -150,6 +187,6 @@ if __name__=='__main__':
 #                      contain_linked_tweet=0,
 #                      least_tweet_per_user=100,
 #                      count=200)
-    analysis_type = analyzer.produce_analysis_type(10)
-    analysis(analysis_type)
+#    analysis_type = analyzer.produce_analysis_type(10)
+#    analysis(analysis_type)
 #    apriori_analysis(analysis_type)

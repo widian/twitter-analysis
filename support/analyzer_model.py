@@ -240,7 +240,7 @@ class AnalysisType(object):
     def __repr__(self): 
         return ("since : %s, until : %s, count : %d, follower_of : %s, contain_retweet : %d, contain_english : %d, contain_username_mentioned : %d, contain_linked_tweet : %d, least_tweet_per_user : %d, user_list_type : %d" % (self.since, self.until, self.count, self.follower_of, self.contain_retweet, self.contain_english, self.contain_username_mentioned, self.contain_linked_tweet, self.least_tweet_per_user, self.user_list_type))
 
-class UserListType(object):
+class UserListTypeHelper(object):
     #TODO : 아직 미사용중. 코드보강 및 알고리즘 보강이 필요
     def make_userlist_id(self, sess):
         id = sess.query(func.max(UserList.list_type)).first()
