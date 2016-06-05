@@ -168,11 +168,10 @@ def test_apriori(userlist_type, min_sup, phrase_length):
 
 
 if __name__=='__main__':
-    for userlist_type in xrange(1, 4):
-        for phrase_length in xrange(3, 9):
-            for sup in xrange(5, 30):
-                min_sup = min_sup / 10.0
-                test_apriori(userlist_type, min_sup, phrase_length)
+    for phrase_length in xrange(3, 7):
+        for sup in xrange(20, 40, 4):
+            min_sup = sup / 10.0
+            test_apriori(1, min_sup, phrase_length)
 
 #    analysis(analyzer.produce_analysis_type(18))
 
