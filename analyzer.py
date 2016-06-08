@@ -113,7 +113,6 @@ def tweet_reduce_dict(analysis_type, table_list):
 
         type_result = tweet_type_query.first()
         type_id = type_result.id
-
         #TODO : TweetType에 트윗 검색이 캐시된 시간을 저장해놓는 용도를 추가
         #       트윗을 재검색할 수 있도록?
         """ 혹시 있을지 모르는 트윗 검색 캐시를 제거
