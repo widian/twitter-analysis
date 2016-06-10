@@ -2,14 +2,23 @@
 # -*- coding:utf8 -*-
 import twitter
 
+try:
+    from config import CONSUMER_KEY
+    from config import CONSUMER_SECRET
+    from config import ACCESS_TOKEN_KEY
+    from config import ACCESS_TOKEN_SECRET
+except:
+    print 'Tweet API keys are not exist'
+    exit()
+
 class TweetSupport(object):
     api = None
     def __init__(self, sleep_on_rate_limit=False):
         self.api = twitter.Api(
-                consumer_key= 'Jn0vFPTkewSek85vb1USoCQf4',
-                consumer_secret = 'VnFh6AvyiojNKVFUryQXWaKKzHsvBsVnebjQWDcOCfftsjgO9J',
-                access_token_key = '100506002-67IOcA0mZehNVmJlqmkOIB4QsJfjlXKK1OX0ylqO',
-                access_token_secret='j72a7volEPzuwRAmu44j467IyxdZHpgIA1fPxU6AgWDy1')
+                consumer_key=CONSUMER_KEY,
+                consumer_secret = CONSUMER_SECRET,
+                access_token_key = ACCESS_TOKEN_KEY,
+                access_token_secret=ACCESS_TOKEN_SECRET)
     def get_api(self):
         return self.api
 
